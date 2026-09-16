@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Panel preview</title>
+<link rel="stylesheet" href="../src/styles/tokens.css" />
+<link rel="stylesheet" href="../src/styles/app.css" />
+<link rel="stylesheet" href="../src/styles/widgets.css" />
+<link rel="stylesheet" href="../src/styles/panels.css" />
+<link rel="stylesheet" href="../src/styles/theme.css" />
+<style>
+  html, body { margin: 0; background: #fff; }
+  body[data-theme='dark'] { background: #0f1113; }
+  .row { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; }
+  .col > .mount { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .col > .mount > * { flex: 1 1 auto; min-height: 0; }
+  .cap { font: 11px/1.4 system-ui, sans-serif; color: #888; padding: 0 0 6px 2px; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script>
+  /* The real store persists to localStorage, which Chrome refuses on file://.
+   * A memory shim keeps the panel code path identical. */
+  try { window.localStorage.getItem('x'); }
+  catch (_) {
+    const mem = new Map();
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k) => (mem.has(k) ? mem.get(k) : null),
+        setItem: (k, v) => mem.set(k, String(v)),
+        removeItem: (k) => mem.delete(k),
+        clear: () => mem.clear()
+      }
+    });
+  }
+  window.cs = {
+    clipboard: { writeText() {} },
+    shell: { openExternal() {} },
+    file: { save: () => Promise.resolve(null), openText: () => Promise.resolve(null) }
+  };
+</script>
+
+<script src="../src/js/core/util.js"></script>
+<script src="../src/js/core/color.js"></script>
+<script src="../src/js/core/store.js"></script>
+<script src="../src/js/core/theme.js"></script>
+<script src="../src/js/data/named-colors.js"></script>
+<script src="../src/js/data/schemes.js"></script>
+<script src="../src/js/data/palettes.js"></script>
+<script src="../src/js/ui/icons.js"></script>
+<script src="../src/js/ui/widgets.js"></script>
+<script src="../src/js/panels/base-color.js"></script>
+<script src="../src/js/panels/palette.js"></script>
+
+<script>
+(function () {
+  'use strict';
+  const CS = window.CS;
+  const params = new URLSearchParams(location.search);
+  const theme = params.get('theme') === 'dark' ? 'dark' : 'light';
+  const width = Number(params.get('w') || 300);
+  const height = Number(params.get('h') || 640);
+
+  document.documentElement.setAttribute('data-theme', theme);
+  document.body.dataset.theme = theme;
+
+  CS.Store.setColor(params.get('hex') || '#F4C430');
+
+  const stage = document.getElementById('stage');
+  const useDock = params.get('dock') === '1';
+
+  /* [caption, builder, extra height] */
+  const COLUMNS = [
+    ['Base Color — Wheel', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('wheel'); }],
+    ['Base Color — RGB (Step row)', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('rgb'); }],
+    ['Base Color — Convert', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('convert'); }],
+    ['Color Palette', (m) => {
+      const host = document.createElement('div');
+      host.className = 'palette-host';
+      m.appendChild(host);
+      const p = CS.Panels.Palette.create();
+      host.appendChild(p.root);
+    }, 170]
+  ];
+
+  const row = document.createElement('div');
+  row.className = 'row';
+  COLUMNS.forEach(([cap, build, h]) => {
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.style.width = width + 'px';
+    col.style.height = (h || height) + 'px';
+    const label = document.createElement('div');
+    label.className = 'cap';
+    label.textContent = cap + '  ·  ' + width + 'px  ·  ' + theme + (useDock ? '  ·  dock' : '');
+    const mount = document.createElement('div');
+    mount.className = 'mount' + (useDock ? ' dock' : '');
+    col.append(label, mount);
+    row.appendChild(col);
+    try {
+      build(mount);
+    } catch (err) {
+      mount.textContent = 'MOUNT FAILED: ' + err.message;
+      mount.style.color = '#c00';
+      mount.style.font = '11px monospace';
+    }
+  });
+  stage.appendChild(row);
+  document.title = 'preview-ready';
+
+  /* `?metrics=1` appends a machine-readable geometry dump so the spacing can be
+   * checked with numbers instead of by eye (build/preview-metrics.js). */
+  if (params.get('metrics') === '1') {
+    const r = (root, sel) => {
+      const n = root.querySelector(sel);
+      if (!n) return null;
+      const b = n.getBoundingClientRect();
+      return {
+        top: +b.top.toFixed(1),
+        bottom: +b.bottom.toFixed(1),
+        h: +b.height.toFixed(1),
+        w: +b.width.toFixed(1)
+      };
+    };
+    const out = [...row.children].map((col) => {
+      const mount = col.querySelector('.mount');
+      const probes = [
+        ['panel-body', '.panel-body'],
+        ['bc-view', '.bc-view:not(.hidden)'],
+        ['stack', '.bc-stack'],
+        ['wheel-wrap', '.bc-wheel-wrap'],
+        ['wheel-canvas', 'canvas.bc-wheel'],
+        ['readout', '.bc-wheel-readout'],
+        ['convert', '.bc-convert'],
+        ['cvd-grid', '.conv-grid'],
+        ['palette-head', '.panel-sub > .panel-head'],
+        ['palette-grid', '.palette-grid']
+      ];
+      const rects = {};
+      probes.forEach(([name, sel]) => {
+        const b = r(mount, sel);
+        if (b) rects[name] = b;
+      });
+      return { caption: col.querySelector('.cap').textContent, rects };
+    });
+    const pre = document.createElement('pre');
+    pre.id = 'metrics';
+    pre.textContent = JSON.stringify(out, null, 1);
+    document.body.appendChild(pre);
+  }
+})();
+</script>
+</body>
+</html>

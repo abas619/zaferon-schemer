@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self' file:; img-src 'self' file: data: blob:; style-src 'self' file: 'unsafe-inline'; script-src 'self' file:;"
+  />
+  <title>Screen Color Picker</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      cursor: none;
+      background: #000;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      user-select: none;
+    }
+
+    #shot {
+      position: fixed;
+      inset: 0;
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      background-position: 0 0;
+    }
+
+    .dim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.18);
+      pointer-events: none;
+    }
+
+    .cross-x,
+    .cross-y {
+      position: fixed;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55);
+    }
+    .cross-x { height: 1px; left: 0; right: 0; }
+    .cross-y { width: 1px; top: 0; bottom: 0; }
+
+    .loupe {
+      position: fixed;
+      width: 138px;
+      pointer-events: none;
+      background: #f2f2f2;
+      border: 1px solid #7d7d7d;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .loupe canvas {
+      display: block;
+      width: 136px;
+      height: 136px;
+      background: #fff;
+    }
+
+    .loupe-readout {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      background: linear-gradient(#fbfbfb, #ececec);
+      border-top: 1px solid #cfcfcf;
+      font-size: 11px;
+      color: #1b1b1b;
+    }
+
+    .loupe-swatch {
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(0, 0, 0, 0.45);
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    }
+
+    .loupe-values { line-height: 1.35; min-width: 0; }
+    .loupe-hex {
+      font-family: Consolas, "SF Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .loupe-sub {
+      font-family: Consolas, "SF Mono", monospace;
+      font-size: 9.5px;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .hint {
+      position: fixed;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
+      background: rgba(28, 28, 28, 0.9);
+      color: #f2f2f2;
+      font-size: 12px;
+      padding: 7px 16px;
+      border-radius: 14px;
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      letter-spacing: 0.2px;
+    }
+    .hint b { color: #ffe082; font-weight: 600; }
+
+    .copied {
+      position: fixed;
+      left: 50%;
+      bottom: 34px;
+      transform: translateX(-50%);
+      background: #2f7d1f;
+      color: #fff;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 13px;
+      opacity: 0;
+      transition: opacity 0.18s;
+      pointer-events: none;
+    }
+    .copied.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="shot"></div>
+  <div class="dim"></div>
+  <div class="cross-x" id="cx"></div>
+  <div class="cross-y" id="cy"></div>
+
+  <div class="loupe" id="loupe">
+    <canvas id="zoom" width="272" height="272"></canvas>
+    <div class="loupe-readout">
+      <div class="loupe-swatch" id="swatch"></div>
+      <div class="loupe-values">
+        <div class="loupe-hex" id="hex">#000000</div>
+        <div class="loupe-sub" id="sub">R 0  G 0  B 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">Click to pick a colour &nbsp;·&nbsp; <b>Esc</b> cancel &nbsp;·&nbsp; <b>C</b> copy hex &nbsp;·&nbsp; <b>arrows</b> nudge &nbsp;·&nbsp; <b>Space</b> freeze</div>
+  <div class="copied" id="copied">Hex copied to clipboard</div>
+
+  <script src="js/picker.js"></script>
+</body>
+</html>

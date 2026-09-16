@@ -1,0 +1,36 @@
+{
+  "name": "zaferon-scheme",
+  "productName": "Saffron Scheme",
+  "version": "1.0.0",
+  "description": "Saffron Scheme — a desktop color studio: matching colors, live schemes, mixer, variations, photo color extraction and a full-screen eyedropper.",
+  "main": "main.js",
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "assets": "node build/make-assets.js",
+    "icons": "node build/make-icons.js",
+    "shots": "electron build/shots.js",
+    "smoke": "electron build/smoke.js",
+    "verify": "electron build/verify.js",
+    "firstrun": "electron build/firstrun.js",
+    "store-test": "node build/store-test.js",
+    "css-check": "node build/css-coverage.js",
+    "preview": "node build/preview.js",
+    "preview-metrics": "node build/preview-metrics.js"
+  },
+  "keywords": [
+    "color",
+    "palette",
+    "scheme",
+    "electron",
+    "eyedropper",
+    "color-picker"
+  ],
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "lucide-static": "^1.46.0"
+  }
+}

@@ -1,0 +1,693 @@
+/* ==================================================================
+ * Saffron Scheme — application chrome, layout and panels.
+ *
+ * All colours and metrics come from tokens.css. Nothing here may
+ * hard-code a literal colour.
+ * ================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text);
+  background: var(--chrome);
+  user-select: none;
+  cursor: default;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-3);
+  border-left: 1px solid var(--line-soft);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border: 1px solid var(--border-3);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-2);
+}
+::-webkit-scrollbar-corner {
+  background: var(--surface-3);
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ *
+ * Title bar
+ * ------------------------------------------------------------------ */
+
+.titlebar {
+  height: var(--titlebar-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 8px;
+  background: linear-gradient(var(--surface-2), var(--surface-3));
+  border-bottom: 1px solid var(--border);
+  -webkit-app-region: drag;
+}
+
+.titlebar-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.titlebar-title {
+  font-size: 11.5px;
+  color: var(--text);
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar-controls {
+  display: flex;
+  -webkit-app-region: no-drag;
+  height: 100%;
+}
+
+.wc {
+  width: 44px;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  transition: background 0.1s;
+}
+.wc:hover {
+  background: var(--hover);
+}
+.wc-close:hover {
+  background: #e81123;
+}
+.wc-close:hover .wc-glyph {
+  color: var(--on-accent);
+}
+.wc-glyph {
+  font-family: "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Menu bar
+ * ------------------------------------------------------------------ */
+
+.menubar {
+  height: var(--menubar-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  background: var(--chrome);
+  border-bottom: 1px solid var(--border);
+  padding-left: 2px;
+}
+
+.menubar-item {
+  border: 0;
+  background: transparent;
+  padding: 0 8px;
+  font-size: 11px;
+  color: var(--text);
+  cursor: default;
+}
+.menubar-item:hover,
+.menubar-item.is-open {
+  background: var(--focus-soft);
+}
+.menubar-item.is-open {
+  background: var(--focus-soft);
+}
+
+/* ------------------------------------------------------------------ *
+ * Toolbar
+ * ------------------------------------------------------------------ */
+
+.toolbar {
+  height: var(--toolbar-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 8px;
+  background: linear-gradient(var(--surface-2), var(--surface-3));
+  border-bottom: 1px solid var(--line);
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-btn {
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  padding: 0;
+}
+.tool-btn:hover {
+  background: var(--focus-soft);
+  border-color: var(--focus-line);
+}
+.tool-btn.is-active {
+  background: var(--focus-soft);
+  border-color: var(--focus-line);
+}
+.tool-btn:disabled {
+  opacity: 0.35;
+}
+.tool-btn svg {
+  display: block;
+  pointer-events: none;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 26px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.current-color {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  border: 1px solid var(--line-hard);
+  background: var(--surface);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-left: 2px;
+}
+
+.current-color-swatch {
+  width: 22px;
+  height: 100%;
+  border-right: 1px solid var(--line-soft);
+  flex: 0 0 auto;
+}
+
+.current-color-value {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  padding: 0 6px;
+  width: 78px;
+  border: 0;
+  outline: none;
+  background: var(--surface);
+  text-transform: uppercase;
+  height: 100%;
+}
+
+.current-color-arrow {
+  width: 20px;
+  height: 100%;
+  border: 0;
+  border-left: 1px solid var(--line-soft);
+  background: var(--surface-2);
+  cursor: default;
+  font-size: 9px;
+  color: var(--text-dim);
+}
+.current-color-arrow:hover {
+  background: var(--hover);
+}
+
+/* ------------------------------------------------------------------ *
+ * Workspace + docking
+ * ------------------------------------------------------------------ */
+
+.workspace {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--chrome);
+}
+
+.dock {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.dock-left {
+  width: 208px;
+}
+.dock-right {
+  width: 224px;
+}
+
+.center-column {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.doc-host {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.palette-host {
+  flex: 0 0 auto;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.palette-host.is-hidden {
+  display: none;
+}
+.palette-host.is-hidden + .splitter,
+.splitter[data-split="palette"].is-hidden {
+  display: none;
+}
+
+.splitter {
+  flex: 0 0 auto;
+  background: var(--chrome);
+  position: relative;
+  z-index: 3;
+}
+.splitter-v {
+  width: 9px;
+  cursor: col-resize;
+  border: 0;
+  background: transparent;
+}
+.splitter-h {
+  height: 9px;
+  cursor: row-resize;
+  border: 0;
+  background: transparent;
+}
+.splitter:hover {
+  background: transparent;
+}
+.splitter.is-hidden {
+  display: none;
+}
+
+body.is-resizing {
+  cursor: inherit;
+}
+body.is-resizing * {
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Panels
+ * ------------------------------------------------------------------ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  background: var(--panel-face);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.dock > .panel,
+.doc-host > .panel {
+  flex: 1 1 auto;
+}
+
+.panel-head {
+  height: var(--panel-head-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px 0 5px;
+  background: linear-gradient(var(--panel-head-top), var(--panel-head-bottom));
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.panel-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-head-spacer {
+  flex: 1 1 auto;
+}
+
+.panel-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex: 0 0 auto;
+}
+
+.panel-btn {
+  width: 15px;
+  height: 15px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-dim);
+  padding: 0;
+}
+.panel-btn:hover {
+  background: var(--border);
+}
+.panel-btn-close {
+  font-size: 8px;
+}
+.panel-btn-close:hover {
+  background: var(--danger-line);
+  color: var(--danger);
+}
+
+.panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel-face);
+}
+
+.panel.panel-sub {
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.panel.panel-sub.is-collapsed .panel-body {
+  display: none;
+}
+.panel.panel-sub .panel-head {
+  cursor: default;
+}
+
+/* Panel tabs row */
+.panel-tabrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  padding: 2px 3px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-3);
+  min-height: 22px;
+}
+.panel-tabrow .tabs {
+  flex: 1 1 auto;
+}
+.panel-tabrow-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 2px;
+}
+
+.panel-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.panel-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------------ *
+ * Status bar
+ * ------------------------------------------------------------------ */
+
+.statusbar {
+  height: var(--statusbar-h);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px;
+  background: var(--chrome);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.status-left {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.status-btn {
+  width: 20px;
+  height: 18px;
+  border: 1px solid transparent;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  color: var(--text-dim);
+  padding: 0;
+  border-radius: 2px;
+}
+.status-btn:hover {
+  background: var(--focus-soft);
+  border-color: var(--focus-line);
+}
+.status-btn:disabled {
+  opacity: 0.35;
+}
+.status-btn .ok {
+  color: var(--accent);
+}
+.status-btn .no {
+  color: var(--danger);
+}
+.status-text {
+  font-size: 12px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--text);
+  padding: 0 3px;
+  letter-spacing: -0.3px;
+}
+
+.status-pill {
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1px 7px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Generic helpers
+ * ------------------------------------------------------------------ */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.row-wrap {
+  flex-wrap: wrap;
+}
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.spacer {
+  flex: 1 1 auto;
+}
+.hidden {
+  display: none !important;
+}
+.dim {
+  color: var(--text-dim);
+}
+.mono {
+  font-family: var(--mono);
+}
+.center {
+  display: grid;
+  place-items: center;
+}
+
+.field-label {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.section-label {
+  font-size: 10px;
+  color: var(--text-mute);
+  text-align: center;
+  padding: 2px 0;
+  letter-spacing: 0.3px;
+}
+
+.divider-h {
+  height: 1px;
+  background: var(--line-soft);
+  margin: 4px 0;
+}
+
+.empty-note {
+  color: var(--text-mute);
+  font-size: 10.5px;
+  text-align: center;
+  padding: 14px 10px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ *
+ * Canvas surfaces (wheel, spectrum, variations…)
+ * ------------------------------------------------------------------ */
+
+.surface {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.surface canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.surface-hatched {
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(45deg, #f2f2f2 25%, transparent 25%, transparent 75%, #f2f2f2 75%),
+    linear-gradient(45deg, #f2f2f2 25%, transparent 25%, transparent 75%, #f2f2f2 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Colour grids (palette, variations, swatch rows)
+ * ------------------------------------------------------------------ */
+
+.swatch-grid {
+  display: grid;
+  gap: 1px;
+  padding: 0;
+  background: var(--surface);
+}
+
+.swatch-grid .sw {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  cursor: default;
+  outline: 1px solid rgba(0, 0, 0, 0.12);
+  outline-offset: -1px;
+}
+.swatch-grid .sw:hover {
+  outline: 2px solid var(--ring-strong);
+  outline-offset: -2px;
+  z-index: 2;
+  position: relative;
+}
+
+.swatch-strip {
+  display: flex;
+  gap: 1px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Empty / drop zones
+ * ------------------------------------------------------------------ */
+
+.drop-note {
+  border: 1px solid var(--border-2);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 10.5px;
+  line-height: 1.55;
+  text-align: center;
+  padding: 16px 12px;
+  margin: 10px;
+}
+.drop-note.is-drop-target {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}

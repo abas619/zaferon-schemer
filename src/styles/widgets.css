@@ -1,0 +1,628 @@
+/* ==================================================================
+ * Widgets — sliders, tabs, inputs, menus, dialogs, colour chips.
+ * ================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+
+.btn {
+  min-width: 72px;
+  height: 22px;
+  padding: 0 10px;
+  border: 1px solid var(--border-3);
+  border-radius: 2px;
+  background: linear-gradient(var(--surface), var(--surface-3));
+  color: var(--text);
+  cursor: default;
+  white-space: nowrap;
+}
+.btn:hover {
+  background: linear-gradient(var(--focus-soft), var(--focus-soft));
+  border-color: var(--focus);
+}
+.btn:active {
+  background: linear-gradient(var(--focus-soft), var(--focus-soft));
+  border-color: var(--focus);
+}
+.btn:disabled {
+  color: var(--text-mute);
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+.btn-primary {
+  border-color: var(--accent-line);
+  background: linear-gradient(var(--accent-soft), var(--accent-soft));
+}
+.btn-primary:hover {
+  border-color: var(--accent);
+  background: linear-gradient(var(--accent-soft), var(--accent-line));
+}
+
+.btn-mini {
+  min-width: 0;
+  height: 18px;
+  padding: 0 7px;
+  font-size: 10.5px;
+}
+
+.icon-btn {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+.icon-btn:hover {
+  background: var(--focus-soft);
+  border-color: var(--focus-line);
+}
+.icon-btn:disabled {
+  opacity: 0.35;
+}
+.icon-btn.is-active {
+  background: var(--focus-soft);
+  border-color: var(--focus-line);
+}
+
+/* Round green "+" used by the Add buttons */
+.add-btn {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: radial-gradient(circle at 35% 30%, var(--accent-hi), var(--accent));
+  color: var(--on-accent);
+  font-size: 12px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  padding: 0 0 1px;
+  font-weight: 700;
+}
+.add-btn:hover {
+  background: radial-gradient(circle at 35% 30%, var(--accent-hi), var(--accent));
+}
+.add-btn:disabled {
+  opacity: 0.4;
+}
+
+/* ------------------------------------------------------------------ *
+ * Text inputs / selects
+ * ------------------------------------------------------------------ */
+
+input[type="text"],
+input[type="search"],
+input[type="number"],
+select,
+textarea {
+  height: 18px;
+  border: 1px solid var(--border-3);
+  background: var(--surface);
+  padding: 0 3px;
+  outline: none;
+  border-radius: 0;
+  user-select: text;
+}
+textarea {
+  height: auto;
+  padding: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.45;
+  resize: vertical;
+}
+input[type="text"]:focus,
+input[type="search"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 1px rgba(74, 144, 217, 0.3);
+}
+input::placeholder {
+  color: var(--text-mute);
+}
+input[type="text"]:disabled,
+select:disabled {
+  background: var(--surface-3);
+  color: var(--text-mute);
+}
+
+.cselect {
+  height: 19px;
+  border: 1px solid var(--border-3);
+  background: var(--surface);
+  padding: 0 2px;
+  border-radius: 0;
+  max-width: 100%;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 19px;
+  border: 1px solid var(--border-3);
+  background: var(--surface);
+  padding: 0 4px;
+}
+.search-field input {
+  border: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+}
+.search-field input:focus {
+  box-shadow: none;
+}
+.search-field svg {
+  flex: 0 0 auto;
+  opacity: 0.55;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tabs
+ * ------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+
+.tab {
+  border: 1px solid transparent;
+  border-bottom: 0;
+  background: transparent;
+  padding: 2px 8px 3px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: default;
+  border-radius: 3px 3px 0 0;
+  position: relative;
+  top: 1px;
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--text);
+  background: var(--focus-soft);
+}
+.tab.is-active {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--text);
+  top: 1px;
+  padding-bottom: 4px;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * Gradient slider
+ * ------------------------------------------------------------------ */
+
+.cslider {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.cslider-label {
+  width: 10px;
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: var(--text);
+  text-align: center;
+}
+
+.cslider-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cslider-track {
+  flex: 1 1 auto;
+  height: 14px;
+  min-width: 20px;
+  border: 1px solid var(--border-3);
+  position: relative;
+  cursor: default;
+  background: linear-gradient(90deg, #000, var(--surface));
+}
+.cslider.is-compact .cslider-track {
+  height: 11px;
+}
+
+.cslider-thumb {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 8px;
+  height: 6px;
+  pointer-events: none;
+  background: var(--text);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.9));
+  transform: translateY(100%);
+  z-index: 2;
+}
+
+.cslider-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.cslider-num {
+  width: 34px;
+  flex: 0 0 auto;
+  height: 15px;
+  text-align: right;
+  font-size: 10.5px;
+  padding: 0 2px;
+}
+.cslider.is-compact .cslider-num {
+  width: 30px;
+  height: 14px;
+  font-size: 10px;
+}
+
+/* Hue / saturation slider variants keep the same chrome */
+
+/* ------------------------------------------------------------------ *
+ * Stepper
+ * ------------------------------------------------------------------ */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.stepper-label {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.stepper-num {
+  width: 34px;
+  height: 17px;
+  text-align: right;
+  font-size: 10.5px;
+  padding: 0 2px;
+}
+.stepper-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.stepper-btn {
+  width: 13px;
+  height: 8px;
+  border: 1px solid var(--border-3);
+  background: linear-gradient(var(--surface), var(--hover));
+  font-size: 5px;
+  line-height: 1;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  cursor: default;
+  color: var(--text-dim);
+}
+.stepper-btn:hover {
+  background: linear-gradient(var(--focus-soft), var(--focus-soft));
+  border-color: var(--focus);
+}
+.stepper.is-compact .stepper-num {
+  width: 28px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Colour chip
+ * ------------------------------------------------------------------ */
+
+.color-chip {
+  position: relative;
+  width: 34px;
+  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  cursor: default;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+.color-chip:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 0 2px var(--ring-strong);
+  z-index: 3;
+}
+.color-chip.is-selected {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), 0 0 0 2px var(--focus);
+  z-index: 3;
+}
+.color-chip.is-dragging {
+  opacity: 0.45;
+}
+
+/* ------------------------------------------------------------------ *
+ * Colour drag: any swatch being dragged, and the pointer-drag ghost
+ * ------------------------------------------------------------------ */
+
+/* Sources that are not .color-chip (palette cells, the base preview). */
+.pal-sw.is-dragging,
+.bc-preview.is-dragging {
+  opacity: 0.45;
+}
+
+/* Follows the cursor for canvas sources, which cannot start an HTML5 drag.
+ * A pill rather than a circle so the hex fits; offset down-right so it trails
+ * the pointer instead of covering the thing being dropped on. */
+.colour-ghost {
+  position: fixed;
+  z-index: 4000;
+  margin: 10px 0 0 10px;
+  min-width: 46px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 6px;
+  border: 2px solid var(--ring-contrast);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 3px 10px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+}
+.colour-ghost-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2px;
+  color: inherit;
+  pointer-events: none;
+}
+/* Suppress the text I-beam while dragging a colour around the window. */
+body.is-colour-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+.color-chip .chip-label {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  letter-spacing: 0.2px;
+  pointer-events: none;
+  text-shadow: 0 0 3px rgba(255, 255, 255, 0.35);
+}
+.chip-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 11px;
+  height: 11px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--text);
+  font-size: 7px;
+  line-height: 1;
+  display: none;
+  place-items: center;
+  padding: 0;
+  cursor: default;
+}
+.color-chip:hover .chip-remove {
+  display: grid;
+}
+.chip-remove:hover {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+
+/* ------------------------------------------------------------------ *
+ * Dropdown menus
+ * ------------------------------------------------------------------ */
+
+.menu-popup {
+  position: fixed;
+  z-index: 9000;
+  min-width: 170px;
+  background: var(--surface);
+  border: 1px solid var(--border-3);
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.22);
+  padding: 2px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 21px;
+  padding: 0 10px 0 4px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: default;
+  color: var(--text);
+  position: relative;
+}
+.menu-item:not(.is-disabled):hover,
+.menu-item:not(.is-disabled).is-subopen {
+  background: var(--focus-soft);
+}
+.menu-item:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -2px;
+}
+.menu-item.is-disabled {
+  color: var(--text-mute);
+}
+.menu-item.is-checked .menu-label {
+  font-weight: 600;
+}
+
+.menu-check {
+  width: 13px;
+  flex: 0 0 auto;
+  text-align: center;
+  font-size: 10px;
+  color: var(--accent);
+}
+.menu-label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-accel {
+  flex: 0 0 auto;
+  color: var(--text-mute);
+  font-size: 10.5px;
+  padding-left: 18px;
+}
+.menu-arrow {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-dim);
+  padding-left: 6px;
+}
+.menu-sep {
+  height: 1px;
+  background: var(--hover);
+  margin: 3px 2px;
+}
+
+.menu-subwrap {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  display: none;
+}
+.menu-subwrap.is-open {
+  display: block;
+}
+.menu-subwrap > .menu-popup {
+  position: absolute;
+}
+
+/* ------------------------------------------------------------------ *
+ * Modal dialogs
+ * ------------------------------------------------------------------ */
+
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(30, 30, 30, 0.28);
+  display: grid;
+  place-items: center;
+}
+
+.modal {
+  background: var(--panel-face);
+  border: 1px solid var(--border-3);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35);
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-title {
+  height: 24px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 0 9px;
+  background: linear-gradient(var(--surface-2), var(--hover));
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+.modal-close {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  font-size: 9px;
+  cursor: default;
+  color: var(--text-dim);
+}
+.modal-close:hover {
+  background: var(--danger-line);
+  color: var(--danger);
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 14px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--line-soft);
+  background: var(--hover);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 7px 10px;
+  align-items: center;
+}
+.form-grid > .span {
+  grid-column: 1 / -1;
+}
+.form-hint {
+  color: var(--text-mute);
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.checkbox-row input[type="checkbox"] {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Tooltip
+ * ------------------------------------------------------------------ */
+
+.tooltip-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9800;
+}
+.app-tooltip {
+  position: absolute;
+  background: var(--warn-soft);
+  border: 1px solid var(--border-3);
+  color: var(--text);
+  font-size: 10.5px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}

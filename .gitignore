@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Generated application packages and test artifacts
+dist/
+out/
+release/
+artifacts/
+coverage/
+shots/
+
+# Local caches and temporary files
+.cache/
+.electron/
+*.tmp
+*.temp
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (keep examples in Git)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local AI/workspace metadata
+.workbuddy-ai/

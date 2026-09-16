@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self' file:; img-src 'self' file: data: blob:; style-src 'self' file: 'unsafe-inline'; script-src 'self' file:; font-src 'self' file: data:;"
+  />
+  <meta name="theme-color" content="#f0f0f0" />
+  <title>Saffron Scheme</title>
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/app.css" />
+  <link rel="stylesheet" href="styles/widgets.css" />
+  <link rel="stylesheet" href="styles/panels.css" />
+  <link rel="stylesheet" href="styles/theme.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ---------------------------------------------------------- -->
+    <div class="titlebar" id="titlebar">
+      <img class="titlebar-icon" src="assets/icon.png" alt="" />
+      <span class="titlebar-title" id="titlebar-title">Saffron Scheme</span>
+      <div class="titlebar-controls">
+        <button class="wc" id="win-min" title="Minimize" type="button"><span class="wc-glyph"></span></button>
+        <button class="wc" id="win-max" title="Maximize" type="button"><span class="wc-glyph" id="win-max-glyph"></span></button>
+        <button class="wc wc-close" id="win-close" title="Close" type="button"><span class="wc-glyph"></span></button>
+      </div>
+    </div>
+
+    <!-- ---------------------------------------------------------- -->
+    <div class="menubar" id="menubar"></div>
+
+    <!-- ---------------------------------------------------------- -->
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar-left" id="toolbar-tools"></div>
+      <div class="toolbar-right" id="toolbar-right"></div>
+    </div>
+
+    <!-- ---------------------------------------------------------- -->
+    <div class="workspace" id="workspace">
+      <div class="dock dock-left" id="dock-left"></div>
+      <div class="splitter splitter-v" data-split="left"></div>
+
+      <div class="center-column" id="center-column">
+        <div class="doc-host" id="doc-host"></div>
+        <div class="splitter splitter-h" data-split="palette" id="splitter-palette"></div>
+        <div class="palette-host" id="palette-host"></div>
+      </div>
+
+      <div class="splitter splitter-v" data-split="right"></div>
+      <div class="dock dock-right" id="dock-right"></div>
+    </div>
+
+    <!-- ---------------------------------------------------------- -->
+    <div class="statusbar" id="statusbar">
+      <div class="status-left" id="status-left">Ready</div>
+      <div class="status-right" id="status-right"></div>
+    </div>
+  </div>
+
+  <div class="tooltip-layer" id="tooltip-layer"></div>
+
+  <!-- core -->
+  <script src="js/core/util.js"></script>
+  <script src="js/core/color.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/core/theme.js"></script>
+
+  <!-- data -->
+  <script src="js/data/named-colors.js"></script>
+  <script src="js/data/schemes.js"></script>
+  <script src="js/data/palettes.js"></script>
+
+  <!-- ui -->
+  <script src="js/ui/icons.js"></script>
+  <script src="js/ui/widgets.js"></script>
+
+  <!-- panels -->
+  <script src="js/panels/base-color.js"></script>
+  <script src="js/panels/matching.js"></script>
+  <script src="js/panels/palette.js"></script>
+  <script src="js/panels/gallery.js"></script>
+  <script src="js/panels/photo.js"></script>
+  <script src="js/panels/favorites.js"></script>
+  <script src="js/panels/builder.js"></script>
+
+  <!-- app -->
+  <script src="js/app.js"></script>
+</body>
+</html>

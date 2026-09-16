@@ -1,0 +1,1432 @@
+/* ==================================================================
+ * Saffron Scheme — design layer.
+ *
+ * Loaded last. This is where the look lives: flat surfaces, hairline
+ * rules, generous padding, pill controls. Everything reads its colours
+ * from tokens.css, so both themes come out of the same rules.
+ *
+ * House rules
+ *   · no gradients on chrome — a flat surface plus a hairline is enough
+ *   · one accent (--accent) for "this is the active/primary thing"
+ *   · --focus is for keyboard rings and selection, never for decoration
+ *   · radii: 6 small, 8 controls, 10 panels, 12 dialogs, pill for tags
+ * ================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * 1. Base
+ * ------------------------------------------------------------------ */
+
+html,
+body {
+  font-size: 12px;
+  letter-spacing: 0.005em;
+  background: var(--surface-3);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+  border: 0;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-mute) 34%, transparent);
+  border: 3px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text-mute) 58%, transparent);
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Window chrome — one flat surface, hairline separators
+ * ------------------------------------------------------------------ */
+
+.titlebar {
+  height: var(--titlebar-h);
+  padding-left: 12px;
+  gap: 9px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.titlebar-icon {
+  width: 15px;
+  height: 15px;
+}
+.titlebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0;
+}
+
+.wc {
+  width: 46px;
+  color: var(--text-dim);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.wc:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.wc-close:hover {
+  background: var(--danger);
+  color: #fff;
+}
+.wc-glyph {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+
+.menubar {
+  height: var(--menubar-h);
+  gap: 2px;
+  padding: 0 6px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.menubar-item {
+  height: 22px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.menubar-item:hover,
+.menubar-item.is-open {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.toolbar {
+  height: var(--toolbar-h);
+  padding: 0 10px;
+  gap: 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.toolbar-left,
+.toolbar-right {
+  gap: 3px;
+}
+
+.tool-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  border: 1px solid transparent;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.tool-btn:hover {
+  background: var(--hover);
+  border-color: transparent;
+  color: var(--text);
+}
+.tool-btn.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.tool-btn:disabled {
+  opacity: 0.3;
+}
+.tool-btn:disabled:hover {
+  background: transparent;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  margin: 0 7px;
+  background: var(--border);
+}
+
+/* Current colour reads as the primary control in the toolbar. */
+.current-color {
+  height: 30px;
+  border: 1px solid var(--border-3);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.current-color:focus-within {
+  border-color: var(--focus);
+  box-shadow: var(--ring);
+}
+.current-color-swatch {
+  width: 30px;
+  border-right: 1px solid var(--border);
+}
+.current-color-value {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 0 8px;
+  width: 84px;
+  background: transparent;
+}
+.current-color-arrow {
+  width: 26px;
+  background: transparent;
+  border-left: 1px solid var(--border);
+  color: var(--text-mute);
+  display: grid;
+  place-items: center;
+}
+.current-color-arrow:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.statusbar {
+  height: var(--statusbar-h);
+  padding: 0 10px;
+  gap: 10px;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  color: var(--text-mute);
+  font-size: 11px;
+}
+.status-left-wrap {
+  gap: 4px;
+}
+.status-btn {
+  width: 24px;
+  height: 20px;
+  border-radius: var(--radius-xs);
+  border: 0;
+  background: transparent;
+  color: var(--text-mute);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.status-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 19px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-dim);
+  font-size: 10.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.status-pill svg {
+  flex: 0 0 auto;
+}
+.status-pill.is-safe {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.status-pill.is-warn {
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+  color: var(--danger);
+}
+
+.theme-toggle {
+  height: 28px;
+  padding: 0 12px 0 10px;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.theme-toggle:hover {
+  background: var(--hover);
+  border-color: var(--border-2);
+  color: var(--text);
+}
+.theme-toggle svg {
+  flex: 0 0 auto;
+}
+.theme-toggle .tt-label {
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Workspace, docks, panel cards
+ * ------------------------------------------------------------------ */
+
+.workspace {
+  background: var(--surface-3);
+}
+
+.dock {
+  padding: 8px 0 8px 8px;
+  gap: 8px;
+}
+.dock-right {
+  padding: 8px 8px 8px 0;
+}
+.center-column {
+  padding: 8px 8px 0 0;
+}
+
+.splitter {
+  background: transparent;
+}
+.splitter-v {
+  width: 8px;
+}
+.splitter-h {
+  height: 8px;
+}
+.splitter:hover::after,
+.splitter.is-dragging::after {
+  background: var(--focus);
+}
+.splitter::after {
+  content: '';
+  position: absolute;
+  background: transparent;
+  transition: background var(--dur) var(--ease);
+}
+.splitter-v::after {
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+}
+.splitter-h::after {
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.panel-fill {
+  background: var(--surface);
+}
+.panel-body {
+  background: var(--surface);
+}
+
+.doc-host,
+.palette-host {
+  background: transparent;
+}
+
+/* Document tab strip — segmented, not skeuomorphic file tabs. */
+.doc-tabs,
+.doc-tab-strip {
+  background: transparent;
+  border-bottom: 0;
+  padding: 0 0 8px;
+  gap: 3px;
+}
+.doc-tab {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 500;
+}
+.doc-tab:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.doc-tab.is-active {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Panel head + tabs
+ * ------------------------------------------------------------------ */
+
+.panel-head {
+  height: var(--panel-head-h);
+  padding: 0 8px 0 12px;
+  gap: 6px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.panel-title-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.panel-head-sub {
+  height: 28px;
+  background: var(--surface-2);
+}
+.panel-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 0;
+  background: transparent;
+  color: var(--text-mute);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.panel-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.panel-btn-close:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* Panel tab row — a segmented control. */
+.panel-tabrow {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 8px;
+  gap: 8px;
+}
+.panel-tabrow .tabs {
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius);
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+}
+/* A dock can be 180px wide; without this the tab strip refuses to shrink and
+ * pushes the panel's own tools out of the panel. */
+.panel-tabrow > * {
+  min-width: 0;
+}
+.panel-tabrow .tab {
+  height: 22px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow: none;
+}
+.panel-tabrow .tab:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+.panel-tabrow .tab.is-active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+.panel-tabrow-tools {
+  gap: 6px;
+}
+
+.section-label {
+  color: var(--text-mute);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-top-color: var(--border);
+}
+
+/* ------------------------------------------------------------------ *
+ * 5. Buttons
+ * ------------------------------------------------------------------ */
+
+.btn {
+  height: 28px;
+  padding: 0 12px;
+  gap: 6px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 500;
+  box-shadow: var(--shadow-1);
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.btn:hover {
+  background: var(--hover);
+  border-color: var(--border-3);
+}
+.btn:active {
+  background: var(--active);
+}
+.btn:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}
+.btn:disabled:hover {
+  background: var(--surface);
+  border-color: var(--border-2);
+}
+
+.btn-mini {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  box-shadow: none;
+}
+.btn-primary:hover {
+  background: var(--accent-hi);
+  border-color: var(--accent-hi);
+}
+.btn-primary:active {
+  background: var(--accent);
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-dim);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.icon-btn.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+}
+.icon-btn:disabled:hover {
+  background: transparent;
+}
+
+/* The round "+" the Add buttons use. */
+.add-btn {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 50%;
+  font-size: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+.add-btn:hover {
+  background: var(--accent-hi);
+  border-color: var(--accent-hi);
+}
+
+/* ------------------------------------------------------------------ *
+ * 6. Inputs
+ * ------------------------------------------------------------------ */
+
+input[type='text'],
+input[type='number'],
+input[type='search'],
+select,
+textarea,
+.search-field,
+.cselect {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+input[type='text']:hover,
+input[type='number']:hover,
+select:hover,
+.cselect:hover {
+  border-color: var(--border-3);
+}
+input[type='text']:focus,
+input[type='number']:focus,
+input[type='search']:focus,
+select:focus,
+textarea:focus,
+.search-field:focus-within {
+  border-color: var(--focus);
+  box-shadow: var(--ring);
+  outline: none;
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-mute);
+}
+.cselect {
+  height: 26px;
+  padding: 0 6px;
+}
+
+.field-label {
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+.hex-input,
+.current-color-value,
+.stepper-num,
+.cslider-num input {
+  font-family: var(--mono);
+}
+
+/* ------------------------------------------------------------------ *
+ * 7. Sliders and steppers
+ * ------------------------------------------------------------------ */
+
+.cslider .cslider-track {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+[data-theme='dark'] .cslider .cslider-track {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.cslider .cslider-thumb {
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border-3), var(--shadow-2);
+}
+.cslider-num input {
+  background: var(--surface);
+  border-color: var(--border-2);
+  border-radius: var(--radius-xs);
+  color: var(--text);
+}
+
+.stepper {
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  overflow: hidden;
+}
+.stepper-btn {
+  color: var(--text-mute);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.stepper-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.stepper-label {
+  color: var(--text-dim);
+}
+
+/* ------------------------------------------------------------------ *
+ * 8. Menus, dialogs, tooltips
+ * ------------------------------------------------------------------ */
+
+.menu-popup {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  padding: 5px;
+}
+.menu-item {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+}
+.menu-item:hover:not(.is-disabled),
+.menu-item.is-subopen:not(.is-disabled) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.menu-item:hover:not(.is-disabled) .menu-accel,
+.menu-item.is-subopen:not(.is-disabled) .menu-accel,
+.menu-item:hover:not(.is-disabled) .menu-arrow,
+.menu-item.is-subopen:not(.is-disabled) .menu-arrow {
+  color: inherit;
+  opacity: 0.8;
+}
+.menu-item.is-disabled {
+  color: var(--text-mute);
+}
+.menu-sep,
+.menu-separator {
+  background: var(--border);
+  border-top-color: var(--border);
+  margin: 5px 8px;
+}
+.menu-accel {
+  color: var(--text-mute);
+}
+.menu-check {
+  color: inherit;
+  display: grid;
+  place-items: center;
+}
+.menu-item.is-subopen .menu-arrow {
+  color: inherit;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+.modal-head,
+.modal-title {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+}
+.modal-foot {
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.modal-scrim {
+  background: var(--scrim);
+  backdrop-filter: blur(2px);
+}
+.modal-close {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 0;
+  background: transparent;
+  color: var(--text-mute);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.modal-close:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.app-tooltip {
+  background: var(--text);
+  border: 0;
+  color: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2);
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+/* ------------------------------------------------------------------ *
+ * 9. Chips, swatches, cards
+ * ------------------------------------------------------------------ */
+
+.color-chip {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.color-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--border-3);
+}
+.chip-remove {
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 62%, transparent);
+  color: var(--surface);
+}
+.chip-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.scheme-card,
+.gallery-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.scheme-card:hover,
+.gallery-card:hover {
+  border-color: var(--border-3);
+  box-shadow: var(--shadow-2);
+}
+
+.drop-note,
+.empty-note {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+
+.surface-hatched {
+  background-color: var(--surface-3);
+  background-image: linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--text-mute) 12%, transparent) 25%,
+    transparent 25%,
+    transparent 75%,
+    color-mix(in srgb, var(--text-mute) 12%, transparent) 75%
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * 10. Panel interiors
+ * ------------------------------------------------------------------ */
+
+/* Documents and panel surfaces all sit on the panel face now, so one rule
+ * covers what used to be a long [data-theme='dark'] sweep of #fff. */
+.doc-panel,
+.matching-stack,
+.matching-stack > *,
+.wheel-wrap,
+.wheel-hub,
+.live-wrap,
+.mixer-wrap,
+.variations-wrap,
+.vr-grid,
+.palette-wrap,
+.palette-grid,
+.gallery-wrap,
+.photo-wrap,
+.favorites-wrap,
+.builder-wrap,
+.browser-wrap,
+.bc-lib-list,
+.bc-canvas-wrap {
+  background: var(--surface);
+}
+
+.bc-preview {
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+.bc-canvas-wrap {
+  border-color: var(--border);
+  background: var(--surface-3);
+}
+.bc-sep {
+  border-top-color: var(--border);
+}
+.bc-label {
+  color: var(--text-dim);
+}
+
+/* One vertical rhythm for every panel section, so the gap above a section is
+ * the same as the gap below it — and the same in every tab. */
+.bc-view {
+  padding-top: var(--section-gap);
+  padding-bottom: var(--section-gap);
+}
+.palette-host .panel-body {
+  padding: var(--section-gap);
+}
+/* Arrow-key step. These are real buttons — they used to render at 19x16 with
+ * `cursor: default`, which made them look like a readout rather than a control,
+ * and nothing in the UI said what the number steps. */
+.bc-inc {
+  width: 30px;
+  height: 22px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.bc-inc:hover {
+  border-color: var(--border-3);
+  color: var(--text);
+}
+.bc-inc.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.bc-inc.is-active:hover {
+  color: var(--on-accent);
+}
+
+/* The caption that tells you what the step applies to. */
+.bc-hint {
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--text-mute);
+  padding: 1px 0 2px;
+}
+.bc-hint kbd {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  padding: 0 3px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-xs);
+  background: var(--surface-3);
+  color: var(--text-dim);
+}
+.lib-row:hover {
+  background: var(--hover);
+}
+.lib-sw {
+  border-color: var(--border-2);
+}
+
+.vr-sw,
+.mx-sw {
+  border-color: var(--border-2);
+}
+
+/* Conversion table.
+ *
+ * These rules were dropped wholesale when this stylesheet was rewritten — only
+ * the colour overrides survived. Without them every row fell back to inline
+ * flow: a tag of variable width pushed each field to a different x, and the
+ * values ran off the edge of the panel. Layout first, then the colours. */
+.conv-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-right: 2px;
+  border-radius: var(--radius-xs);
+}
+.conv-row:hover {
+  background: var(--hover);
+}
+.conv-tag {
+  flex: 0 0 44px;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-mute);
+}
+.conv-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 22px;
+  padding: 0 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text);
+  text-overflow: ellipsis;
+}
+.conv-value:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+}
+.conv-value:focus {
+  background: var(--surface);
+  border-color: var(--focus);
+  box-shadow: var(--ring);
+}
+.conv-copy {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-mute);
+  border-radius: var(--radius-xs);
+  opacity: 0;
+}
+.conv-row:hover .conv-copy,
+.conv-copy:focus-visible {
+  opacity: 1;
+}
+.conv-copy:hover {
+  background: var(--surface-3);
+  border-color: var(--border);
+  color: var(--text);
+}
+.conv-copy.is-done {
+  opacity: 1;
+  color: var(--accent);
+}
+
+/* Four collapsible group headers replace the ten format chips that used to sit
+ * above the table. The chips repeated every tag a second time and were most of
+ * the clutter; the headers keep the same "hide what I don't need" control while
+ * giving the table a hierarchy. */
+.conv-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conv-group-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.conv-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.conv-group-chev {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--text-mute);
+}
+.conv-group-head:hover .conv-group-label,
+.conv-group-head:hover .conv-group-chev {
+  color: var(--text);
+}
+.conv-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conv-group.is-collapsed .conv-group-body {
+  display: none;
+}
+
+/* Colour-vision preview: two columns rather than three, so a condition name
+ * fits on one line, plus a Normal swatch to compare the simulations against. */
+.conv-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-1);
+}
+.conv-cvd {
+  position: relative;
+  display: block;
+  height: 30px;
+  min-width: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+}
+.conv-cvd span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-size: 9.5px;
+  line-height: 1.1;
+  letter-spacing: 0.1px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+/* A pale swatch needs dark ink, or the label disappears into it. */
+.conv-cvd.is-light span {
+  color: rgba(0, 0, 0, 0.76);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.55);
+}
+
+/* ------------------------------------------------------------------ *
+ * 11. Motion
+ * ------------------------------------------------------------------ */
+
+.tool-btn,
+.icon-btn,
+.menubar-item,
+.tab,
+.bc-inc,
+.lib-row,
+.btn,
+.panel-btn,
+.menu-item,
+.doc-tab {
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * 12. Colour wheel tab (Base Color → Wheel) and the conversion table
+ * ------------------------------------------------------------------ */
+
+/* The wheel canvas MUST carry a definite width and an aspect ratio.
+ *
+ * A <canvas> with no CSS size lays out at its `width`/`height` *attributes*,
+ * and `W.fitCanvas` writes `canvas.width = cssWidth * devicePixelRatio`. That
+ * closes a loop: layout reads the attribute, fitCanvas multiplies it by the
+ * DPR, the element grows, and it feeds back. At 1.25× per frame the pane
+ * reaches ~5500px within a handful of repaints, and the next ImageData
+ * allocation throws `RangeError: Out of memory` — from inside a Store
+ * listener, so every listener after it dies too. A dropped rule here does not
+ * look like a layout bug; it looks like a random OOM. */
+.bc-wheel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Grow to fill the tab and centre the wheel + readout group. Without this the
+   * pair packs to the top and leaves a dead band under the readout, so the gap
+   * above the wheel and the gap below it stop matching. `safe` keeps the top of
+   * the group reachable when the panel is too short to centre it. */
+  justify-content: safe center;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: var(--section-gap);
+}
+/* The tab itself has to grow for the wrap above to have anything to fill. */
+.bc-view-wheel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.bc-wheel-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+canvas.bc-wheel {
+  width: 100%;
+  max-width: 262px;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 50%;
+  cursor: crosshair;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+  touch-action: none;
+}
+.bc-wheel-readout {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-3);
+}
+.bc-wheel-sw {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-2);
+  flex: 0 0 auto;
+}
+.bc-wheel-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.2;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Harmony ▲/▼ inside the wheel hub. Sized so they read as controls, not dust. */
+.hub-arrow {
+  padding: 2px 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  line-height: 1;
+  cursor: pointer;
+}
+.hub-arrow:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+/* Conversion tab — a dense table of every colour space. */
+.bc-convert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  flex: 0 0 auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * 13. PhotoSchemer
+ * ------------------------------------------------------------------ */
+
+.photo-toolbar {
+  gap: 6px;
+  padding: 7px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.tool-inline {
+  height: 26px;
+  padding: 0 9px;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.tool-inline:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.tool-check {
+  color: var(--text-dim);
+  font-size: 11.5px;
+}
+
+.photo-stage {
+  background: var(--surface-3);
+}
+
+/* The extracted-colour strip floats over the picture. It used to render as a
+ * stray white box in the corner before any colour had been sampled. */
+.photo-swatches {
+  left: 10px;
+  top: 10px;
+  gap: 6px;
+  padding: 6px 7px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+}
+.photo-swatches:empty {
+  display: none;
+}
+.photo-swatch-label {
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.photo-empty-card {
+  background: var(--surface);
+  border: 1px dashed var(--border-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+}
+.photo-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+.photo-empty-text {
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.photo-stage.is-drop-target .photo-empty-card {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ------------------------------------------------------------------ *
+ * 14. SchemeBuilder harmony rows
+ * ------------------------------------------------------------------ */
+
+/* Each strip used to be a single unbroken colour bar touching its
+ * neighbours, which read as one heavy block. Space them out, round the
+ * ends and let the row breathe. */
+.builder-sug-row {
+  gap: 12px;
+  margin-bottom: 5px;
+}
+.builder-sug-name {
+  width: 138px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.builder-sug-strip {
+  height: 18px;
+  gap: 3px;
+}
+.builder-sug-sw {
+  border-radius: var(--radius-xs);
+  outline: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.builder-sug-sw:hover {
+  outline: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 0 0 2px var(--ring-strong);
+}
+.builder-section-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.builder-base {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.builder-work-strip {
+  gap: 12px;
+}
+
+/* ------------------------------------------------------------------ *
+ * 15. Scrollbars stay out of the way inside panels
+ * ------------------------------------------------------------------ */
+
+.panel-body::-webkit-scrollbar,
+.panel-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* The tab strip scrolls sideways in a narrow dock; its scrollbar would eat a
+ * whole row of the panel head, so it stays invisible. */
+.panel-tabrow .tabs::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * 16. Narrow docks
+ * ------------------------------------------------------------------ */
+
+.dock .bc-view {
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow-x: hidden;
+}
+.dock .bc-row {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.dock .bc-label {
+  font-size: 10.5px;
+}
+.dock .bc-inc {
+  width: 27px;
+  height: 20px;
+  font-size: 10.5px;
+}
+.dock .hex-input {
+  width: 62px;
+  font-size: 10.5px;
+}
+.dock .cslider-label {
+  width: 10px;
+  font-size: 10.5px;
+}
+.dock .cslider-num input {
+  width: 36px;
+}
+.dock .bc-stack {
+  overflow-x: hidden;
+}
+
+.dock {
+  container-type: inline-size;
+}
+@container (max-width: 250px) {
+  .conv-tag {
+    flex: 0 0 36px;
+    font-size: 9.5px;
+  }
+  .conv-value {
+    font-size: 10px;
+  }
+}
+@container (max-width: 200px) {
+  .conv-row {
+    flex-wrap: wrap;
+  }
+  .conv-tag {
+    flex-basis: 100%;
+  }
+}

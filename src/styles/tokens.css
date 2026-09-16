@@ -1,0 +1,176 @@
+/* ==================================================================
+ * Saffron Scheme — design tokens.
+ *
+ * Loaded FIRST, before app/widgets/panels, and the only place a raw colour
+ * literal is allowed to live. Everything downstream references these, so
+ * retheming means editing this file and nothing else.
+ *
+ * Two layers:
+ *   1. the raw palette (surfaces, lines, ink, accents) per theme
+ *   2. semantic aliases the components actually use
+ * ================================================================== */
+
+/* ------------------------------------------------------------------ *
+ * 1. Light palette
+ * ------------------------------------------------------------------ */
+
+:root {
+  --surface: #ffffff; /* cards, panels, canvas */
+  --surface-2: #fafbfc; /* panel heads, footers, recessed strips */
+  --surface-3: #f2f4f7; /* app backdrop, inputs, sunken wells */
+  --hover: #eaeef2; /* hover fill on a surface */
+  --active: #e0e5ea; /* pressed fill */
+
+  --border: #e6e9ee; /* hairline between surfaces */
+  --border-2: #d7dce3; /* visible divider */
+  --border-3: #b4bdc8; /* input outline, strong rule */
+
+  --text: #0e1621;
+  --text-dim: #57626f;
+  --text-mute: #8b95a2;
+
+  --accent: #0d9f6e;
+  --accent-hi: #12b47e;
+  --accent-soft: #e7f7f1;
+  --accent-line: #a4dfc9;
+  --on-accent: #ffffff;
+
+  --focus: #2f7ff0;
+  --focus-soft: #eaf2fe;
+  --focus-line: #bcd7fb;
+
+  --danger: #dc3d43;
+  --danger-soft: #fdecee;
+  --danger-line: #f4c2c6;
+
+  --warn: #a9761b;
+  --warn-soft: #fdf5e4;
+  --warn-line: #efd9a3;
+
+  --scrim: rgba(14, 22, 33, 0.34);
+
+  /* A ring drawn *over* colour art (sample markers, the eyedropper loupe).
+   * It must stay white in both themes or the marker vanishes into a light
+   * photo or a pale swatch. */
+  --ring-contrast: #ffffff;
+
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-2: 0 2px 8px rgba(16, 24, 40, 0.09);
+  --shadow-3: 0 16px 40px rgba(16, 24, 40, 0.16);
+
+  color-scheme: light;
+}
+
+/* ------------------------------------------------------------------ *
+ * 2. Dark palette
+ * ------------------------------------------------------------------ */
+
+[data-theme='dark'] {
+  --surface: #191d21; /* cards, panels, canvas */
+  --surface-2: #1e2328; /* panel heads, footers, recessed strips */
+  --surface-3: #12161a; /* app backdrop, inputs, sunken wells */
+  --hover: #262d33;
+  --active: #2e363d;
+
+  --border: #2a3138;
+  --border-2: #363e46;
+  --border-3: #4b555f;
+
+  --text: #e9edf2;
+  --text-dim: #9aa5b1;
+  --text-mute: #6e7a86;
+
+  --accent: #2fbf8b;
+  --accent-hi: #43d29e;
+  --accent-soft: #122b24;
+  --accent-line: #1f5b48;
+  --on-accent: #04231a;
+
+  --focus: #4c9df0;
+  --focus-soft: #122639;
+  --focus-line: #24537c;
+
+  --danger: #f0616a;
+  --danger-soft: #35191c;
+  --danger-line: #6b2c31;
+
+  --warn: #e0b055;
+  --warn-soft: #2e2617;
+  --warn-line: #5c4a24;
+
+  --scrim: rgba(0, 0, 0, 0.55);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 2px 10px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 18px 44px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3. Geometry, motion, type — theme independent
+ * ------------------------------------------------------------------ */
+
+:root {
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  --dur-fast: 90ms;
+  --dur: 140ms;
+  --ease: cubic-bezier(0.32, 0.72, 0.3, 1);
+
+  --ring: 0 0 0 3px color-mix(in srgb, var(--focus) 26%, transparent);
+  --ring-strong: var(--focus);
+
+  --font: "Segoe UI Variable Text", "Segoe UI", "Inter", -apple-system, Tahoma, Arial, sans-serif;
+  --mono: "Cascadia Mono", "Consolas", "SF Mono", ui-monospace, monospace;
+
+  --titlebar-h: 36px;
+  --menubar-h: 28px;
+  --toolbar-h: 46px;
+  --statusbar-h: 26px;
+  --panel-head-h: 30px;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+
+  /* One gap for every seam between stacked sections inside a panel, so the
+   * rhythm does not change from tab to tab. */
+  --section-gap: 10px;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. Semantic aliases
+ *
+ * The component stylesheets were written against these names long before
+ * this file existed. They are kept as the public surface so a component
+ * never has to know which raw palette step it is standing on.
+ * ------------------------------------------------------------------ */
+
+:root {
+  /* window chrome vs. the workspace behind the panels */
+  --chrome: var(--surface);
+  --chrome-dark: var(--surface-3);
+
+  /* panels */
+  --panel-face: var(--surface);
+  --panel-body: var(--surface);
+  --panel-head-top: var(--surface-2);
+  --panel-head-bottom: var(--surface-2);
+
+  /* canvases */
+  --canvas: var(--surface);
+  --canvas-alt: var(--surface-2);
+  --surface-raised: var(--surface);
+  --surface-sunken: var(--surface-3);
+
+  /* rules */
+  --line: var(--border-2);
+  --line-soft: var(--border);
+  --line-hard: var(--border-3);
+}
