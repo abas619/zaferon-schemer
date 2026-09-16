@@ -127,6 +127,10 @@ body {
   gap: 3px;
 }
 
+.toolbar-right .theme-toggle {
+  order: -1;
+}
+
 .tool-btn {
   position: relative;
   width: 34px;
@@ -276,6 +280,9 @@ body {
 }
 .theme-toggle svg {
   flex: 0 0 auto;
+  position: relative;
+  top: 2px;
+  margin-right: 2px;
 }
 .theme-toggle .tt-label {
   line-height: 1;
@@ -297,7 +304,7 @@ body {
   padding: 8px 8px 8px 0;
 }
 .center-column {
-  padding: 8px 8px 0 0;
+  padding: 8px 0px 8px 0;
 }
 
 .splitter {

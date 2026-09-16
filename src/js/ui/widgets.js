@@ -220,10 +220,26 @@
     /** Flip a submenu that would overflow the window, and clamp its height. */
     const placeSubmenu = (sub) => {
       requestAnimationFrame(() => {
-        const r = sub.getBoundingClientRect();
+        const wrap = sub.parentElement;
+
+        // Measure from the default right-opening position every time. The
+        // wrapper is anchored to the owning row; flipping only the popup with
+        // `right: 0` would align it with that row's right edge and cover the
+        // parent menu instead of placing it beside it.
+        wrap.style.left = '100%';
+        wrap.style.right = 'auto';
+        sub.style.left = '0';
+        sub.style.right = 'auto';
+
+        let r = sub.getBoundingClientRect();
         const flip = r.right > window.innerWidth - 4;
-        sub.style.left = flip ? 'auto' : '0';
-        sub.style.right = flip ? '0' : 'auto';
+        if (flip) {
+          wrap.style.left = 'auto';
+          wrap.style.right = '100%';
+          sub.style.left = 'auto';
+          sub.style.right = '0';
+          r = sub.getBoundingClientRect();
+        }
 
         if (r.bottom > window.innerHeight - 4) {
           sub.style.top = 'auto';
