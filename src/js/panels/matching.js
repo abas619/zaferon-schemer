@@ -425,8 +425,47 @@
       window.addEventListener('pointercancel', stop);
     }
 
+    /** Resolve the exact light / base / dark band under a pointer. */
+    function wedgeHit(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left - geom.cx;
+      const y = e.clientY - rect.top - geom.cy;
+      const radius = Math.hypot(x, y);
+      const angle = toDeg(Math.atan2(y, x));
+      const colors = Color.harmony(Store.hsv(), Store.get('scheme', 'complementary'));
+      const baseHue = colors[0].h;
+      const lag = targetHue === null || animHue === null ? 0 : CS.Util.hueDelta(targetHue, animHue);
+      const halfAngle = (360 / (Store.get('prefs.colorWheelSegments', 24) || 24)) * 0.78;
+      const visible = colors
+        .map((c, index) => ({ c, index }))
+        .filter((w) => w.index === 0 || Math.abs(CS.Util.hueDelta(w.c.h, baseHue)) > 0.5)
+        .sort((a, b) => (a.index === 0 ? 1 : 0) - (b.index === 0 ? 1 : 0))
+        .reverse();
+
+      for (const item of visible) {
+        const isBase = item.index === 0;
+        const outer = geom.R * (isBase ? WEDGE_OUT : 1.1);
+        const inner = geom.R * (isBase ? 0.48 : 0.54);
+        if (radius < inner || radius > outer) continue;
+        if (Math.abs(CS.Util.hueDelta(item.c.h + lag, angle)) > halfAngle) continue;
+        const bands = bandsFor(item.c);
+        const bandIndex = Math.min(BANDS - 1, Math.floor(((radius - inner) / (outer - inner)) * BANDS));
+        return { ...item, bands, bandIndex, hex: bands[bandIndex] };
+      }
+      return null;
+    }
+
+    function addWedgeColors(colors, description) {
+      let added = 0;
+      colors.forEach((hex) => {
+        if (Store.addFavorite(hex)) added++;
+      });
+      CS.App.setStatus(`Added ${added} ${description} colour${added === 1 ? '' : 's'} to Favourites.`);
+    }
+
     // click the ring or a wedge to change the base colour
     on(canvas, 'pointerdown', (e) => {
+      if (e.button !== 0) return;
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left - geom.cx;
       const y = e.clientY - rect.top - geom.cy;
@@ -434,16 +473,12 @@
       const angle = toDeg(Math.atan2(y, x));
 
       const base = Store.hsv();
-      const colors = Color.harmony(base, Store.get('scheme', 'complementary'));
 
       // did we hit a wedge?
-      const half = 360 / (Store.get('prefs.colorWheelSegments', 24) || 24) / 2;
-      const hit = colors.find(
-        (c, i) => Math.abs(CS.Util.hueDelta(c.h, angle)) < half * 0.9 && d > geom.R * (i === 0 ? 0.42 : 0.5)
-      );
+      const hit = wedgeHit(e);
       if (hit) {
-        Store.setColor(hit);
-        armColourDrag(Color.toHex(Color.hsvToRgb(hit)), e);
+        Store.setColor(hit.c);
+        armColourDrag(hit.hex, e);
         return;
       }
       if (d >= geom.rIn * 0.95) {
@@ -451,6 +486,19 @@
         Store.setColor(picked);
         armColourDrag(Color.toHex(Color.hsvToRgb(picked)), e);
       }
+    });
+
+    on(canvas, 'contextmenu', (e) => {
+      const hit = wedgeHit(e);
+      if (!hit) return;
+      e.preventDefault();
+      const point = { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY, width: 0, height: 0 };
+      W.menu(point, [
+        { label: 'Add All Colors', action: () => addWedgeColors(hit.bands, 'wedge') },
+        { label: 'Light Color Only', action: () => addWedgeColors([hit.bands[0]], 'light') },
+        { label: 'Middle Color Only', action: () => addWedgeColors([hit.bands[1]], 'middle') },
+        { label: 'Dark Color Only', action: () => addWedgeColors([hit.bands[2]], 'dark') }
+      ]);
     });
 
     return {
