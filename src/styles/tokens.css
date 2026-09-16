@@ -29,15 +29,16 @@
   --text-dim: #57626f;
   --text-mute: #8b95a2;
 
-  --accent: #0d9f6e;
-  --accent-hi: #12b47e;
-  --accent-soft: #e7f7f1;
-  --accent-line: #a4dfc9;
-  --on-accent: #ffffff;
+  /* Saffron is the brand colour; crocus purple is its complement. */
+  --accent: #a85a00;
+  --accent-hi: #914b00;
+  --accent-soft: #fff2cc;
+  --accent-line: #e2b85a;
+  --on-accent: #fffdf8;
 
-  --focus: #2f7ff0;
-  --focus-soft: #eaf2fe;
-  --focus-line: #bcd7fb;
+  --focus: #7c3aed;
+  --focus-soft: #f1eafe;
+  --focus-line: #c6b1f4;
 
   --danger: #dc3d43;
   --danger-soft: #fdecee;
@@ -80,15 +81,16 @@
   --text-dim: #9aa5b1;
   --text-mute: #6e7a86;
 
-  --accent: #2fbf8b;
-  --accent-hi: #43d29e;
-  --accent-soft: #122b24;
-  --accent-line: #1f5b48;
-  --on-accent: #04231a;
+  /* Brighter saffron stays luminous on charcoal; purple remains complementary. */
+  --accent: #f2b84b;
+  --accent-hi: #ffd06a;
+  --accent-soft: #352713;
+  --accent-line: #75551d;
+  --on-accent: #261700;
 
-  --focus: #4c9df0;
-  --focus-soft: #122639;
-  --focus-line: #24537c;
+  --focus: #a78bfa;
+  --focus-soft: #2b2140;
+  --focus-line: #624c91;
 
   --danger: #f0616a;
   --danger-soft: #35191c;
