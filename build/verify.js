@@ -106,26 +106,28 @@ const wedgePoint = (i) => `
     const w = r.width, h = r.height;
     const cl = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
     const pad = cl(Math.min(w, h) * 0.055, 14, 34);
-    const R = Math.max(20, (Math.min(w, h) / 2 - pad - 7) / 1.16);
+    const R = Math.max(20, (Math.min(w, h) / 2 - pad - 7) / 1.06);
     const cx = w / 2, cy = h / 2;
-    const colors = CS.Color.harmony(CS.Store.hsv(), CS.Store.get('scheme', 'complementary'));
+    const base = CS.Store.hsv();
+    const colors = CS.Color.harmony(base, CS.Store.get('scheme', 'complementary'));
     const c0 = colors[${i}];
+    const display = { h: c0.h, s: cl(Math.max(base.s, 0.5), 0, 1), v: cl(Math.max(base.v, 0.42), 0, 1) };
     const rad = (c0.h - 90) * Math.PI / 180;
     const d = R * 0.85;
     return {
-      hex: CS.Color.toHex(CS.Color.hsvToRgb(c0)),
+      hex: CS.Color.toHex(CS.Color.hsvToRgb(display)),
       x: Math.round(r.left + cx + d * Math.cos(rad)),
       y: Math.round(r.top + cy + d * Math.sin(rad))
     };
   })()`;
 
-/** Centre of the favourites drop target (the grid when filled, the note when empty). */
+/** Blank lower area of the favourites body — the entire body must accept drops. */
 const favDropRect = `
   (() => {
-    const n = document.querySelector('#dock-right .fav-grid') || document.querySelector('#dock-right .drop-note.fav-drop');
+    const n = document.querySelector('#dock-right .fav-body');
     if (!n) return null;
     const r = n.getBoundingClientRect();
-    return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+    return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height * 0.75) };
   })()`;
 
 /* Real cursor input. sendInputEvent mouseMove only reaches the renderer when
@@ -272,8 +274,11 @@ async function run(win) {
          const h = rect.height;
          const cl = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
          const pad = cl(Math.min(w, h) * 0.055, 14, 34);
-         const R = Math.max(20, (Math.min(w, h) / 2 - pad - 7) / 1.16);
-         const hue = window.CS.Store.hsv().h;
+         const R = Math.max(20, (Math.min(w, h) / 2 - pad - 7) / 1.06);
+         const baseHsv = window.CS.Store.hsv();
+         const hue = baseHsv.h;
+         const tone = { s: cl(Math.max(baseHsv.s, 0.5), 0, 1), v: cl(Math.max(baseHsv.v, 0.42), 0, 1) };
+         const expectedMiddle = window.CS.Color.toHexUpper(window.CS.Color.hsvToRgb({ h: hue, s: tone.s, v: tone.v }));
          const dpr = window.devicePixelRatio || 1;
          const ctx = c.getContext('2d', { willReadFrequently: true });
          const hex = (x, y) => {
@@ -284,14 +289,15 @@ async function run(win) {
            const ang = ((angleDeg - 90) * Math.PI) / 180;
            return [w / 2 + Math.cos(ang) * rad, h / 2 + Math.sin(ang) * rad];
          };
-         const inner = R * 0.48;
-         const outer = R * 1.16;
+         const inner = R * 0.62;
+         const outer = R * 1.06;
          const at = (t) => hex(...polar(hue, inner + (outer - inner) * t));
          // 17 degrees off the base hue: no harmony ever puts a wedge there,
          // so this is the plain ring, sampled at two radii.
          const ring = (rad) => hex(...polar(hue + 17, rad));
          return {
            base: window.CS.Store.hexUpper(),
+           expectedMiddle,
            hub: at(0.12),
            mid: at(0.5),
            rim: at(0.88),
@@ -307,7 +313,11 @@ async function run(win) {
   for (const scheme of ['shades', 'tints', 'monochromatic', 'complementary']) {
     log(`scheme ${scheme}: ${await setScheme(scheme)}`);
     await sleep(1300);
-    log(`  ramp ${JSON.stringify(await wedgeSamples())}`);
+    const ramp = await wedgeSamples();
+    log(`  ramp ${JSON.stringify(ramp)}`);
+    if (!ramp || ramp.mid !== ramp.expectedMiddle) {
+      problems.push(`WEDGE middle does not match its wheel column: ${JSON.stringify(ramp)}`);
+    }
     await shot(win, `03b-wedge-${scheme}`, await js(win, rectOf('#doc-host')));
   }
   await setScheme('complementary');
@@ -864,22 +874,24 @@ async function run(win) {
 
   const favsBefore = await js(win, `CS.Store.state.favorites.length`);
 
-  /* A plain click must still only pick the colour. */
+  /* A plain wedge click is inert: it must neither rotate the wheel by changing
+   * the base colour nor add a favourite. The wedge remains a drag source. */
   const w1 = await js(win, wedgePoint(1));
   if (!w1) {
     problems.push('DRAG no .wheel-canvas to probe');
   } else {
+    const beforeClickHex = await js(win, `CS.Store.hexUpper()`);
     await mouseMove(win, w1.x, w1.y);
     await mouseDown(win, w1.x, w1.y);
     await mouseUp(win, w1.x, w1.y);
     await sleep(300);
     const afterClick = await js(win, `({ hex: CS.Store.hexUpper(), n: CS.Store.state.favorites.length })`);
-    log(`wheel click -> ${JSON.stringify(afterClick)} expect ${w1.hex.toUpperCase()} / ${favsBefore} favs`);
-    if (!afterClick || afterClick.hex !== w1.hex.toUpperCase()) {
-      problems.push(`WHEEL click gave ${afterClick && afterClick.hex}, expected ${w1.hex.toUpperCase()}`);
+    log(`wedge click -> ${JSON.stringify(afterClick)} expect unchanged ${beforeClickHex} / ${favsBefore} favs`);
+    if (!afterClick || afterClick.hex !== beforeClickHex) {
+      problems.push(`WEDGE click changed the base colour (${beforeClickHex} -> ${afterClick && afterClick.hex})`);
     }
     if (afterClick && afterClick.n !== favsBefore) {
-      problems.push(`WHEEL click added a favourite (${favsBefore} -> ${afterClick.n})`);
+      problems.push(`WEDGE click added a favourite (${favsBefore} -> ${afterClick.n})`);
     }
 
     /* Dragging it to the dock must save it. */
@@ -891,24 +903,10 @@ async function run(win) {
     if (!w2 || !drop) {
       problems.push(`DRAG could not resolve the wedge or the drop target (${JSON.stringify(w2)}, ${JSON.stringify(drop)})`);
     } else {
-      /* Aim, and confirm the pointerdown actually landed on the wedge before
-       * asserting anything about the drag: a missed click arms nothing, and
-       * "no ghost" would then read as a drag bug instead of a missed aim. */
-      let armed = false;
-      for (let attempt = 0; attempt < 3 && !armed; attempt++) {
-        if (attempt) await sleep(250);
-        await mouseMove(win, w2.x, w2.y);
-        await mouseDown(win, w2.x, w2.y);
-        const got = await js(win, `CS.Store.hexUpper()`);
-        armed = got === w2.hex.toUpperCase();
-        if (!armed) {
-          await mouseUp(win, w2.x, w2.y);
-          log(`  aim attempt ${attempt + 1} missed the wedge (picked ${got})`);
-        }
-      }
-      if (!armed) {
-        problems.push(`DRAG could not land a pointerdown on the wedge at ${w2.x},${w2.y}`);
-      } else {
+      /* Pointerdown on a wedge deliberately leaves Store.hex unchanged. The
+       * drag ghost after clearing the slop is the assertion that it was armed. */
+      await mouseMove(win, w2.x, w2.y);
+      await mouseDown(win, w2.x, w2.y);
       /* the first move stays inside the 5px slop: no drag yet */
       await mouseMove(win, w2.x + 3, w2.y + 2);
       const early = await js(win, `!!document.querySelector('.colour-ghost')`);
@@ -943,7 +941,6 @@ async function run(win) {
         problems.push(`DRAG left the ghost or the highlight behind: ${JSON.stringify(after)}`);
       }
       await shot(win, '19-favorites-after-drag', await js(win, rectOf('#dock-right')));
-      }
 
       /* Dropping on empty space must save nothing. */
       const n0 = await js(win, `CS.Store.state.favorites.length`);

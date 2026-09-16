@@ -30,6 +30,14 @@
   const BLACK = { r: 0, g: 0, b: 0 };
   const BANDS = 3;
 
+  /* Floors for the tone the hue ring is painted in. Only ever a floor: a
+   * colour above them keeps its own saturation and value, so the column under
+   * the pointer is the exact colour a click there sets. They exist for the
+   * other end of the range — a near-black or near-grey base would otherwise
+   * paint every column the same and leave nothing to pick a hue from. */
+  const RING_MIN_S = 0.5;
+  const RING_MIN_V = 0.42;
+
   /** [light, base, dark] as flat hex strings, light nearest the hub. */
   function bandsFor(hsv) {
     const rgb = Color.hsvToRgb({ h: hsv.h, s: hsv.s, v: hsv.v });
@@ -88,10 +96,15 @@
 
     let geom = { cx: 0, cy: 0, R: 0, rIn: 0, rOut: 0 };
 
-    /* The base wedge is drawn 16% past the hue ring and carries a drop shadow,
-     * so the visible extent is larger than R. Reserve that overshoot *plus* a
-     * breathing margin, or the wheel gets clipped by the pane on short axes. */
-    const WEDGE_OUT = 1.16;
+    /* The palette wedge is one hue column with a little to spare: it starts at
+     * the ring's inner edge, covers the band and pokes 6% past the rim, so it
+     * reads as the column it belongs to, lifted out of the wheel. It also
+     * carries a drop shadow, so reserve that overshoot *plus* a breathing
+     * margin, or the wheel gets clipped by the pane on short axes. */
+    const RING_IN = 0.62; // inner edge of the hue ring, as a fraction of R
+    const WEDGE_IN = RING_IN;
+    const WEDGE_OUT = 1.06;
+    const WEDGE_COLUMNS = 1.08; // wedge width, counted in hue columns
     const SHADOW = 7;
     const MARGIN_FRAC = 0.055;
     const MARGIN_MIN = 14;
@@ -120,7 +133,7 @@
     function geometryFor(w, h) {
       const pad = clamp(Math.min(w, h) * MARGIN_FRAC, MARGIN_MIN, MARGIN_MAX);
       const R = Math.max(20, (Math.min(w, h) / 2 - pad - SHADOW) / WEDGE_OUT);
-      return { cx: w / 2, cy: h / 2, R, rIn: R * 0.62, rOut: R };
+      return { cx: w / 2, cy: h / 2, R, rIn: R * RING_IN, rOut: R };
     }
 
     /* The hue ring is static for a given size *and tone*, so rasterise it once
@@ -128,16 +141,27 @@
     let ringCache = null;
 
     /* The ring's angle → hue mapping is fixed (that is what makes it a picker),
-     * but its *tone* follows the base colour, so a near-black base no longer
-     * sits next to a shouting full-brightness rainbow. Saturation and value are
-     * floored because a fully black or fully grey ring would be impossible to
-     * pick a hue from — the floors keep it dim but still readable. */
+     * and its *tone* is the base colour's own saturation and value — floored,
+     * but never raised above the base's own figures. So a near-black base
+     * still gets a readable ring, while every other colour gets a ring whose
+     * columns are exactly the colours picking them produces.
+     *
+     * That last part matters: the old `0.5 + s * 0.5` remap painted the column
+     * *louder* than the colour it handed back. A #BB9442 base drew its column
+     * as #D89C26 while the wedge — built from the real colour — showed
+     * #BB9442, and the same hue read as two different colours on one wheel. */
     function ringTone() {
       const { s, v } = Store.hsv();
       return {
-        s: clamp(0.5 + s * 0.5, 0.5, 1),
-        v: clamp(0.42 + v * 0.58, 0.42, 1)
+        s: clamp(Math.max(s, RING_MIN_S), 0, 1),
+        v: clamp(Math.max(v, RING_MIN_V), 0, 1)
       };
+    }
+
+    /** Build wedge bands from the exact tone painted in the hue column. */
+    function wheelBandsFor(hsv) {
+      const tone = ringTone();
+      return bandsFor({ h: hsv.h, s: tone.s, v: tone.v });
     }
 
     function ringFor(w, h, dpr, g, segs, tone) {
@@ -220,7 +244,11 @@
       // --- scheme wedges, offset by the rotation lag ---
       const schemeId = Store.get('scheme', 'complementary');
       const colors = Color.harmony(Store.hsv(), schemeId);
-      const halfAngle = ((360 / segs) * 0.78 * Math.PI) / 180;
+      // One hue column wide, plus a hair — the wedge is meant to read as the
+      // column it reports. This is a *half*-angle: the old 0.78 was applied to
+      // both sides, so a wedge spanned 1.56 columns and its middle band hung
+      // over its neighbour's colour.
+      const halfAngle = (((360 / segs) * WEDGE_COLUMNS) / 2 * Math.PI) / 180;
       // Shortest signed gap, so crossing 0°/360° rotates the short way round
       // instead of flinging the wedges backwards across the whole circle.
       const lag = CS.Util.hueDelta(targetHue, animHue);
@@ -242,13 +270,13 @@
 
       function drawWedge(c, index) {
         const isBase = index === 0;
-        const outer = R * (isBase ? WEDGE_OUT : 1.1);
-        const inner = R * (isBase ? 0.48 : 0.54);
+        const outer = R * WEDGE_OUT;
+        const inner = R * WEDGE_IN;
         const a = toRad(c.h + lag);
         const dx = Math.cos(a);
         const dy = Math.sin(a);
         const step = (outer - inner) / BANDS;
-        const band = bandsFor(c);
+        const band = wheelBandsFor(c);
 
         const bandAt = (i) => [inner + step * i, inner + step * (i + 1)];
 
@@ -435,7 +463,7 @@
       const colors = Color.harmony(Store.hsv(), Store.get('scheme', 'complementary'));
       const baseHue = colors[0].h;
       const lag = targetHue === null || animHue === null ? 0 : CS.Util.hueDelta(targetHue, animHue);
-      const halfAngle = (360 / (Store.get('prefs.colorWheelSegments', 24) || 24)) * 0.78;
+      const halfAngle = ((360 / (Store.get('prefs.colorWheelSegments', 24) || 24)) * WEDGE_COLUMNS) / 2;
       const visible = colors
         .map((c, index) => ({ c, index }))
         .filter((w) => w.index === 0 || Math.abs(CS.Util.hueDelta(w.c.h, baseHue)) > 0.5)
@@ -443,12 +471,11 @@
         .reverse();
 
       for (const item of visible) {
-        const isBase = item.index === 0;
-        const outer = geom.R * (isBase ? WEDGE_OUT : 1.1);
-        const inner = geom.R * (isBase ? 0.48 : 0.54);
+        const outer = geom.R * WEDGE_OUT;
+        const inner = geom.R * WEDGE_IN;
         if (radius < inner || radius > outer) continue;
         if (Math.abs(CS.Util.hueDelta(item.c.h + lag, angle)) > halfAngle) continue;
-        const bands = bandsFor(item.c);
+        const bands = wheelBandsFor(item.c);
         const bandIndex = Math.min(BANDS - 1, Math.floor(((radius - inner) / (outer - inner)) * BANDS));
         return { ...item, bands, bandIndex, hex: bands[bandIndex] };
       }
@@ -472,17 +499,27 @@
       const d = Math.sqrt(x * x + y * y);
       const angle = toDeg(Math.atan2(y, x));
 
-      const base = Store.hsv();
-
       // did we hit a wedge?
       const hit = wedgeHit(e);
       if (hit) {
-        Store.setColor(hit.c);
+        // A palette wedge is a drag source only. A plain left-click must not
+        // change the base colour or rotate the wheel; ring clicks below keep
+        // the existing colour-picking and rotation behaviour.
         armColourDrag(hit.hex, e);
         return;
       }
       if (d >= geom.rIn * 0.95) {
-        const picked = { h: angle, s: base.s, v: base.v };
+        /* Land the palette in the *middle* of the column that was clicked, not
+         * under the cursor: snap the hue to the column's centre. Every column
+         * is painted as a single flat colour, so the snapped hue is exactly
+         * the colour that was clicked — the wedge then sits square on its
+         * column, filling it edge to edge. */
+        const step = 360 / Math.max(6, Store.get('prefs.colorWheelSegments', 24) || 24);
+        const hue = wrapHue(Math.round(angle / step) * step);
+        /* The column's own tone — the colour this very pixel is painted in —
+         * not the raw base's, so what comes back is what was clicked. */
+        const tone = ringTone();
+        const picked = { h: hue, s: tone.s, v: tone.v };
         Store.setColor(picked);
         armColourDrag(Color.toHex(Color.hsvToRgb(picked)), e);
       }

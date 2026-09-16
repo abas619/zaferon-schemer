@@ -69,18 +69,18 @@
       else CS.App.setStatus(`${hex.toUpperCase()} is already in Favourites.`);
     }
 
-    function makeDropTarget(node) {
-      W.dropZone(node, acceptDrop);
-      W.colourDropZone(node, acceptDrop);
-      return node;
-    }
+    /* The whole scrolling body is one stable drop target. Registering the
+     * transient empty note / grid left most of the visible panel as dead space
+     * and leaked pointer-drop registrations every time render() replaced it. */
+    W.dropZone(body, acceptDrop);
+    const offColourDrop = W.colourDropZone(body, acceptDrop);
 
     /* --- empty state --- */
     function buildEmpty() {
       const note = el('div.drop-note.fav-drop', {
         text: 'Drag & drop colors here to add to your Favorite Colors'
       });
-      return makeDropTarget(note);
+      return note;
     }
 
     /* --- filled state --- */
@@ -88,7 +88,6 @@
 
     function buildGrid(list) {
       const grid = el('div.fav-grid');
-      makeDropTarget(grid);
 
       list.forEach((hex, index) => {
         const node = W.chip(hex, {
@@ -205,7 +204,10 @@
     return {
       root: panel.root,
       refresh: render,
-      destroy: off
+      destroy() {
+        off();
+        offColourDrop();
+      }
     };
   }
 

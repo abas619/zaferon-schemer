@@ -211,7 +211,7 @@ async function run(win) {
 
   /* ---- Matching Colors wheel: margins + rotation animation ----
    * The wheel must sit inside its pane with breathing room on every side, at
-   * any hue — the base wedge is drawn 16% past the ring and used to be clipped.
+   * any hue — every wedge is drawn 6% past the ring and used to be clipped.
    * A hash of the pixel buffer tells us whether the wedges animate or teleport. */
   const wheelMetrics = await js(
     win,
