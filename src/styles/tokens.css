@@ -40,6 +40,10 @@
   --focus-soft: #f1eafe;
   --focus-line: #c6b1f4;
 
+  --success: #187a3d;
+  --success-soft: #e9f7ee;
+  --success-line: #94d3a9;
+
   --danger: #dc3d43;
   --danger-soft: #fdecee;
   --danger-line: #f4c2c6;
@@ -91,6 +95,10 @@
   --focus: #a78bfa;
   --focus-soft: #2b2140;
   --focus-line: #624c91;
+
+  --success: #67d58b;
+  --success-soft: #142c1d;
+  --success-line: #34734a;
 
   --danger: #f0616a;
   --danger-soft: #35191c;

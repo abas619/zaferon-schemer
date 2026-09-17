@@ -911,6 +911,7 @@
   function contrastAnalyzer() {
     let fg = Color.parse('#1b1b1b');
     let bg = Color.parse('#ffffff');
+    let favoriteTarget = 'fg';
 
     const ratioOut = el('div.ca-ratio-value', { text: '—' });
     const badgeRow = el('div.ca-badges');
@@ -923,6 +924,61 @@
     const bgField = el('input', { type: 'text', value: Color.toHexUpper(bg), spellcheck: 'false' });
     const fgSwatch = el('span.ca-swatch');
     const bgSwatch = el('span.ca-swatch');
+    const fgControl = el('div.ca-control', {}, [el('span.field-label', { text: 'Text colour' }), fgSwatch, fgField]);
+    const bgControl = el('div.ca-control', {}, [el('span.field-label', { text: 'Background' }), bgSwatch, bgField]);
+
+    const favoriteGrid = el('div.ca-favorite-grid');
+    const favoriteTextBtn = el('button.ca-target-btn', { type: 'button', text: 'Text', 'aria-pressed': 'true' });
+    const favoriteBgBtn = el('button.ca-target-btn', { type: 'button', text: 'Background', 'aria-pressed': 'false' });
+
+    function setFavoriteTarget(target) {
+      favoriteTarget = target;
+      favoriteTextBtn.classList.toggle('is-active', target === 'fg');
+      favoriteBgBtn.classList.toggle('is-active', target === 'bg');
+      favoriteTextBtn.setAttribute('aria-pressed', String(target === 'fg'));
+      favoriteBgBtn.setAttribute('aria-pressed', String(target === 'bg'));
+      renderFavorites();
+    }
+
+    function setContrastColor(target, value) {
+      const color = Color.parse(value);
+      if (!color) return;
+      if (target === 'fg') {
+        fg = color;
+        fgField.value = Color.toHexUpper(color);
+      } else {
+        bg = color;
+        bgField.value = Color.toHexUpper(color);
+      }
+      update();
+    }
+
+    function renderFavorites() {
+      clear(favoriteGrid);
+      const favorites = (Store.state.favorites || [])
+        .map((color) => Color.parse(color))
+        .filter(Boolean)
+        .map((color) => Color.toHex(color));
+      if (!favorites.length) {
+        favoriteGrid.appendChild(el('span.ca-favorite-empty', { text: 'No favorite colors yet.' }));
+        return;
+      }
+
+      const current = Color.toHex(favoriteTarget === 'fg' ? fg : bg);
+      favorites.forEach((hex) => {
+        const chip = el('button.ca-favorite-chip', {
+          type: 'button',
+          title: `Use ${hex.toUpperCase()} as ${favoriteTarget === 'fg' ? 'text' : 'background'} color`,
+          'aria-label': `${hex.toUpperCase()} favorite color`
+        });
+        chip.style.background = hex;
+        chip.dataset.hex = hex;
+        chip.classList.toggle('is-current', hex === current);
+        on(chip, 'click', () => setContrastColor(favoriteTarget, hex));
+        W.makeDraggable(chip, hex);
+        favoriteGrid.appendChild(chip);
+      });
+    }
 
     function update() {
       const ratio = Color.contrastRatio(fg, bg);
@@ -943,15 +999,14 @@
         { label: 'UI components (3.0)', pass: ratio >= 3 }
       ];
       clear(badgeRow);
-      checks.forEach((c) => {
-        const badge = el(`span.ca-badge${c.pass ? '.is-pass' : '.is-fail'}`, {
-          html: CS.Icons.svg(c.pass ? 'check' : 'x', 12, { stroke: 2.5 })
+      checks.forEach((check) => {
+        const badge = el(`span.ca-badge${check.pass ? '.is-pass' : '.is-fail'}`, {
+          html: CS.Icons.svg(check.pass ? 'check' : 'x', 12, { stroke: 2.5 })
         });
-        badge.appendChild(el('span', { text: c.label }));
+        badge.appendChild(el('span', { text: check.label }));
         badgeRow.appendChild(badge);
       });
 
-      // rebuild the little UI mockup
       clear(previewUi);
       const btn = el('span.ca-ui-btn', { text: 'Button' });
       btn.style.background = Color.toHex(fg);
@@ -960,37 +1015,57 @@
       btn2.style.color = Color.toHex(fg);
       btn2.style.borderColor = Color.toHex(fg);
       previewUi.append(el('span.ca-ui-title', { text: 'Interface preview' }), btn, btn2);
+      renderFavorites();
     }
 
+    on(fgField, 'focus', () => setFavoriteTarget('fg'));
+    on(bgField, 'focus', () => setFavoriteTarget('bg'));
+    on(fgSwatch, 'click', () => setFavoriteTarget('fg'));
+    on(bgSwatch, 'click', () => setFavoriteTarget('bg'));
+    on(favoriteTextBtn, 'click', () => setFavoriteTarget('fg'));
+    on(favoriteBgBtn, 'click', () => setFavoriteTarget('bg'));
+
     on(fgField, 'change', () => {
-      const c = Color.parse(fgField.value);
-      if (c) {
-        fg = c;
-        fgField.value = Color.toHexUpper(c);
-        update();
-      }
+      const color = Color.parse(fgField.value);
+      if (color) setContrastColor('fg', color);
+      else fgField.value = Color.toHexUpper(fg);
     });
     on(bgField, 'change', () => {
-      const c = Color.parse(bgField.value);
-      if (c) {
-        bg = c;
-        bgField.value = Color.toHexUpper(c);
-        update();
-      }
+      const color = Color.parse(bgField.value);
+      if (color) setContrastColor('bg', color);
+      else bgField.value = Color.toHexUpper(bg);
     });
+
+    const applyDrop = (target, hex) => {
+      setFavoriteTarget(target);
+      setContrastColor(target, hex);
+    };
+    W.dropZone(fgControl, (hex) => applyDrop('fg', hex));
+    W.dropZone(bgControl, (hex) => applyDrop('bg', hex));
+    const offFgColourDrop = W.colourDropZone(fgControl, (hex) => applyDrop('fg', hex));
+    const offBgColourDrop = W.colourDropZone(bgControl, (hex) => applyDrop('bg', hex));
+
+    const favoritePicker = el('div.ca-favorites', {}, [
+      el('div.ca-favorite-head', {}, [
+        el('span.ca-favorite-title', { html: CS.Icons.svg('heart', 14) + '<span>Favorite Colors</span>' }),
+        el('span.ca-favorite-hint', { text: 'Apply to:' }),
+        el('div.ca-target-toggle', {}, [favoriteTextBtn, favoriteBgBtn])
+      ]),
+      favoriteGrid
+    ]);
 
     preview.append(previewText, previewSmall, previewUi);
 
     const content = el('div.ca', {}, [
       el('div.ca-controls', {}, [
-        el('div.ca-control', {}, [el('span.field-label', { text: 'Text colour' }), fgSwatch, fgField]),
-        el('div.ca-control', {}, [el('span.field-label', { text: 'Background' }), bgSwatch, bgField]),
+        fgControl,
+        bgControl,
         (() => {
           const swap = el('button.btn.btn-mini', { type: 'button', text: '⇄ Swap' });
           on(swap, 'click', () => {
-            const t = fg;
+            const temp = fg;
             fg = bg;
-            bg = t;
+            bg = temp;
             fgField.value = Color.toHexUpper(fg);
             bgField.value = Color.toHexUpper(bg);
             update();
@@ -999,29 +1074,30 @@
         })(),
         (() => {
           const use = el('button.btn.btn-mini', { type: 'button', text: 'Use Base Colour' });
-          on(use, 'click', () => {
-            bg = Store.rgb();
-            bgField.value = Color.toHexUpper(bg);
-            update();
-          });
+          on(use, 'click', () => setContrastColor(favoriteTarget, Store.rgb()));
           return use;
         })()
       ]),
+      favoritePicker,
       el('div.ca-ratio', {}, [el('span.ca-ratio-label', { text: 'Contrast ratio' }), ratioOut]),
       badgeRow,
       preview
     ]);
 
+    setFavoriteTarget('fg');
     update();
 
     W.dialog({
       title: 'Contrast Analyzer',
-      width: 560,
+      width: 600,
       content,
-      buttons: [{ label: 'Close', value: null, primary: true }]
+      buttons: [{ label: 'Close', value: null, primary: true }],
+      onClose: () => {
+        offFgColourDrop();
+        offBgColourDrop();
+      }
     });
   }
-
   function quickPreview() {
     const schemeId = Store.get('scheme', 'complementary');
     const colors = Color.harmonyRgb(Store.hsv(), schemeId);

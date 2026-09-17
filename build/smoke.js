@@ -427,7 +427,29 @@ async function run(win) {
   await sleep(200);
 
   // dialogs
-  await js(win, `CS.App.contrastAnalyzer(); 'ok'`);
+  await js(win, `CS.Store.addFavorite('#00AA55'); CS.App.contrastAnalyzer(); 'ok'`);
+  const contrastCheck = await js(win, `(() => {
+    const bgTarget = [...document.querySelectorAll('.ca-target-btn')].find((node) => node.textContent.trim() === 'Background');
+    const favorite = document.querySelector('.ca-favorite-chip[data-hex="#00aa55"]');
+    if (!bgTarget || !favorite) return { ok: false, reason: 'favorite controls missing' };
+    bgTarget.click();
+    favorite.click();
+    const fields = document.querySelectorAll('.ca-control input');
+    const pass = document.querySelector('.ca-badge.is-pass');
+    const probe = document.createElement('span');
+    probe.style.color = 'var(--success)';
+    document.body.appendChild(probe);
+    const successColor = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+      ok: bgTarget.classList.contains('is-active') && fields[1].value === '#00AA55',
+      passGreen: !!pass && getComputedStyle(pass).color === successColor,
+      favoriteCount: document.querySelectorAll('.ca-favorite-chip').length
+    };
+  })()`);
+  log(`contrast favorites: ${JSON.stringify(contrastCheck)}`);
+  if (!contrastCheck || !contrastCheck.ok) problems.push(`CONTRAST favorite selection failed ${JSON.stringify(contrastCheck)}`);
+  if (!contrastCheck || !contrastCheck.passGreen) problems.push(`CONTRAST pass badges are not success green ${JSON.stringify(contrastCheck)}`);
   await shot(win, '14-contrast');
   await js(win, `document.querySelector('.modal-close').click(); 'ok'`);
 
