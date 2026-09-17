@@ -1019,8 +1019,8 @@
     const libSearchField = el('div.search-field.bc-lib-search', {}, [
       (() => {
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '11');
-        svg.setAttribute('height', '11');
+        svg.setAttribute('width', '14');
+        svg.setAttribute('height', '14');
         svg.setAttribute('viewBox', '0 0 16 16');
         svg.innerHTML =
           '<circle cx="6.6" cy="6.6" r="4.4" fill="none" stroke="#666" stroke-width="1.6"/><path d="M10 10 L14 14" stroke="#666" stroke-width="1.8" stroke-linecap="round"/>';
