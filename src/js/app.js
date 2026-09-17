@@ -547,7 +547,7 @@
     {
       label: 'Help',
       items: () => [
-        { label: 'Saffron Scheme Help', accel: 'F1', action: helpDialog },
+        { label: 'Zaferon Schemer Help', accel: 'F1', action: helpDialog },
         { separator: true },
         { label: 'Website', action: () => window.cs.shell.openExternal('https://www.colorschemer.com/') },
         { label: 'Gallery', action: () => openDocument('gallery') },
@@ -555,7 +555,7 @@
         { separator: true },
         { label: 'Check for Updates…', action: () => setStatus('You are running the latest version (1.0.0).') },
         { separator: true },
-        { label: 'About Saffron Scheme…', action: aboutDialog }
+        { label: 'About Zaferon Schemer…', action: aboutDialog }
       ]
     }
   ];
@@ -688,7 +688,7 @@
           return img;
         })(),
         el('div', {}, [
-          el('div.about-title', { text: 'Saffron Scheme' }),
+          el('div.about-title', { text: 'Zaferon Schemer' }),
           el('div.about-version', { text: 'Version 1.0.0' }),
           el('div.about-sub', { text: 'Colour management for designers and developers.' })
         ])
@@ -707,7 +707,7 @@
     );
 
     W.dialog({
-      title: 'About Saffron Scheme',
+      title: 'About Zaferon Schemer',
       width: 430,
       content,
       buttons: [{ label: 'OK', value: 'ok', primary: true }]
@@ -730,7 +730,7 @@
     });
 
     W.dialog({
-      title: 'Saffron Scheme Help',
+      title: 'Zaferon Schemer Help',
       width: 520,
       content,
       buttons: [{ label: 'Close', value: null, primary: true }]
@@ -1024,7 +1024,7 @@
     mock.style.background = Color.toHex(soft);
     mock.style.color = Color.toHex(deep);
 
-    const header = el('div.qp-header', { text: 'Saffron Scheme' });
+    const header = el('div.qp-header', { text: 'Zaferon Schemer' });
     header.style.background = Color.toHex(base);
     header.style.color = Color.toHex(text);
 
@@ -1205,7 +1205,7 @@
           .map((h, i) => `        'palette-${i + 1}': '${h}',`)
           .join('\n')}\n      }\n    }\n  }\n};`;
       case 'gpl': {
-        const lines = ['GIMP Palette', 'Name: Saffron Scheme', 'Columns: 8', '#'];
+        const lines = ['GIMP Palette', 'Name: Zaferon Schemer', 'Columns: 8', '#'];
         palette.forEach((c, i) => {
           const name = `Color ${i + 1}`;
           lines.push(`${String(c.r).padStart(3, ' ')} ${String(c.g).padStart(3, ' ')} ${String(c.b).padStart(3, ' ')}\t${name}`);
@@ -1233,7 +1233,7 @@
       default:
         return JSON.stringify(
           {
-            name: 'Saffron Scheme Palette',
+            name: 'Zaferon Schemer Palette',
             created: new Date().toISOString(),
             colors: palette.map((c, i) => ({
               name: `Color ${i + 1}`,
@@ -1406,7 +1406,7 @@
   function workspacePayload() {
     return JSON.stringify(
       {
-        app: 'Saffron Scheme',
+        app: 'Zaferon Schemer',
         version: 1,
         saved: new Date().toISOString(),
         baseColor: Store.hexUpper(),
@@ -1427,7 +1427,7 @@
     const opts = {
       title: forceDialog || !lastSavePath ? 'Save Workspace As' : 'Save Workspace',
       defaultName: lastSavePath || `zaferon-${Store.hex().slice(1)}.json`,
-      filters: [{ name: 'Saffron Scheme Workspace', extensions: ['json'] }],
+      filters: [{ name: 'Zaferon Schemer Workspace', extensions: ['json'] }],
       content: workspacePayload()
     };
     window.cs.file.save(opts).then((p) => {
@@ -1443,7 +1443,7 @@
       .openText({
         title: 'Open Workspace',
         filters: [
-          { name: 'Saffron Scheme Workspace', extensions: ['json'] },
+          { name: 'Zaferon Schemer Workspace', extensions: ['json'] },
           { name: 'All Files', extensions: ['*'] }
         ]
       })
@@ -1454,7 +1454,7 @@
           pushRecent({ name: res.name, path: res.path });
           setStatus(`Opened ${res.name}.`);
         } catch (_) {
-          setStatus('That file is not a Saffron Scheme workspace.');
+          setStatus('That file is not a Zaferon Schemer workspace.');
         }
       });
   }
@@ -1471,7 +1471,7 @@
         pushRecent({ name: res.name, path: res.path });
         setStatus(`Opened ${res.name}.`);
       } catch (_) {
-        setStatus('That file is not a Saffron Scheme workspace.');
+        setStatus('That file is not a Zaferon Schemer workspace.');
       }
     });
   }

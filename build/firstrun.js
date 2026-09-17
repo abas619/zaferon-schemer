@@ -38,7 +38,7 @@ app.commandLine.appendSwitch('in-process-gpu');
 const NEW_KEY = 'zaferon-scheme/state/v1';
 const OLD_KEY = 'colorschemer-studio/state/v1';
 const SAFFRON = '#F4C430';
-const NAME = 'Saffron Scheme';
+const NAME = 'Zaferon Schemer';
 
 const problems = [];
 const trace = [];

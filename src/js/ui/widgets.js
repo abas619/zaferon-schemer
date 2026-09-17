@@ -363,7 +363,7 @@
 
     const box = el('div.modal', { style: { width: (opts.width || 460) + 'px' } }, [
       el('div.modal-title', {}, [
-        el('span', { text: opts.title || 'Saffron Scheme' }),
+        el('span', { text: opts.title || 'Zaferon Schemer' }),
         (() => {
           const x = el('button.modal-close', { type: 'button', title: 'Close', html: CS.Icons.svg('x', 16) });
           on(x, 'click', () => finish(null));

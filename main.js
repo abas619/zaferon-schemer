@@ -21,6 +21,39 @@ const SRC = path.join(ROOT, 'src');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/* ------------------------------------------------------------------ *
+ *  Profile directory — pinned, because this app has been renamed twice
+ *
+ *  Electron puts `userData` — and therefore the renderer's localStorage, which
+ *  is where every favourite, the history and the preferences live — under
+ *  `app.name`, and `app.name` prefers package.json's `productName` over
+ *  `name`. So each rename quietly points the app at an empty directory and the
+ *  user's saved colours look like they vanished, while the real data sits
+ *  untouched one folder over.
+ *
+ *  Resolve it by looking for the names this app has actually shipped under,
+ *  newest first, and fall back to the current name only when none exists —
+ *  which is a genuine first run. `setPath` throws on a missing directory, so
+ *  the existence test is load-bearing, not decoration.
+ * ------------------------------------------------------------------ */
+
+const PROFILE_NAMES = [
+  'Saffron Scheme', // productName until the Zaferon Schemer rename
+  'zaferon-scheme', // the package `name`, in case Electron preferred that
+  'ColorSchemer Studio' // the original productName
+];
+
+const appDataDir = app.getPath('appData');
+const adoptedProfile = PROFILE_NAMES.map((n) => path.join(appDataDir, n)).find((p) => {
+  try {
+    return fs.statSync(p).isDirectory();
+  } catch (_) {
+    return false;
+  }
+});
+
+if (adoptedProfile) app.setPath('userData', adoptedProfile);
+
 let mainWindow = null;
 let pickerSession = null;
 let lastDir = null;
@@ -38,7 +71,7 @@ function createMainWindow() {
     frame: false,
     show: false,
     backgroundColor: '#f0f0f0',
-    title: 'Saffron Scheme',
+    title: 'Zaferon Schemer',
     webPreferences: {
       preload: path.join(ROOT, 'preload.js'),
       contextIsolation: true,

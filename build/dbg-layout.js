@@ -15,7 +15,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const SRC = path.join(
   process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-  'Saffron Scheme'
+  'Zaferon Schemer'
 );
 const DST = path.join(os.tmpdir(), 'cs-real-profile');
 fs.rmSync(DST, { recursive: true, force: true });

@@ -1,5 +1,5 @@
 /* ==================================================================
- * Saffron Scheme — design tokens.
+ * Zaferon Schemer — design tokens.
  *
  * Loaded FIRST, before app/widgets/panels, and the only place a raw colour
  * literal is allowed to live. Everything downstream references these, so

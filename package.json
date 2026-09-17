@@ -1,8 +1,8 @@
 {
-  "name": "zaferon-scheme",
-  "productName": "Saffron Scheme",
+  "name": "zaferon-schemer",
+  "productName": "Zaferon Schemer",
   "version": "1.0.0",
-  "description": "Saffron Scheme — a desktop color studio: matching colors, live schemes, mixer, variations, photo color extraction and a full-screen eyedropper.",
+  "description": "Zaferon Schemer — a desktop color studio: matching colors, live schemes, mixer, variations, photo color extraction and a full-screen eyedropper.",
   "main": "main.js",
   "author": "",
   "license": "MIT",
