@@ -127,7 +127,8 @@ body {
   gap: 3px;
 }
 
-.toolbar-right .theme-toggle {
+.toolbar-right .theme-toggle,
+.toolbar-right .randomize-color-btn {
   order: -1;
 }
 
@@ -286,7 +287,8 @@ body {
   color: var(--danger);
 }
 
-.theme-toggle {
+.theme-toggle,
+.randomize-color-btn {
   height: 28px;
   padding: 0 12px 0 10px;
   gap: 6px;
@@ -296,23 +298,52 @@ body {
   color: var(--text-dim);
   font-size: 11.5px;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
-.theme-toggle:hover {
+.theme-toggle:hover,
+.randomize-color-btn:hover {
   background: var(--hover);
   border-color: var(--border-2);
   color: var(--text);
 }
-.theme-toggle svg {
+.theme-toggle:focus-visible,
+.randomize-color-btn:focus-visible {
+  border-color: var(--focus);
+  outline: none;
+  box-shadow: var(--ring);
+}
+.randomize-color-btn {
+  color: var(--accent);
+}
+.randomize-color-btn:hover {
+  color: var(--accent-hi);
+}
+.theme-toggle svg,
+.randomize-color-btn svg {
   flex: 0 0 auto;
   position: relative;
-  top: 2px;
-  margin-right: 2px;
+  top: 0;
+  margin-right: 0;
 }
-.theme-toggle .tt-label {
+.theme-toggle .tt-label,
+.randomize-color-btn .rc-label {
   line-height: 1;
+}
+
+@media (max-width: 850px) {
+  .randomize-color-btn {
+    width: 28px;
+    padding: 0;
+  }
+
+  .randomize-color-btn .rc-label {
+    display: none;
+  }
 }
 
 /* ------------------------------------------------------------------ *

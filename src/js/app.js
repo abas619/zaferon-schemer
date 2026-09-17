@@ -344,6 +344,16 @@
 
     right.append(el('div.current-color', {}, [swatchNode, hexField, arrow]));
 
+    const randomizeBtn = el('button.randomize-color-btn', {
+      type: 'button',
+      title: 'Randomize color  (Ctrl+R)',
+      html: CS.Icons.svg('sparkles', 15) + '<span class="rc-label">Randomize Color</span>'
+    });
+    on(randomizeBtn, 'click', () => {
+      Store.setColor(Color.randomRgb());
+      setStatus(`Randomized base color to ${Store.hexUpper()}.`);
+    });
+
     /* theme switch */
     themeToggle = el('button.theme-toggle', { type: 'button' });
     function paintThemeToggle() {
@@ -360,7 +370,7 @@
       paintThemeToggle();
       setStatus(`${next === 'dark' ? 'Dark' : 'Light'} theme enabled.`);
     });
-    right.append(themeToggle);
+    right.append(themeToggle, randomizeBtn);
     paintThemeToggle();
     if (CS.Theme) {
       CS.Theme.onChange(paintThemeToggle);
