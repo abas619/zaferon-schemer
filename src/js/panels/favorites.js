@@ -17,6 +17,9 @@
   };
 
   function create() {
+    let viewMode = Store.get('favoriteView', 'grid');
+    if (!['grid', 'compact', 'list'].includes(viewMode)) viewMode = 'grid';
+
     const panel = W.panel('Favorite Colors', {
       menuAlign: 'end',
       onMenu: () => [
@@ -27,8 +30,7 @@
         { label: 'Export Palette…', action: () => CS.App.exportPalette() },
         { label: 'Import Palette…', action: () => CS.App.importPalette() },
         { separator: true },
-        { label: 'Clear Favourites', action: clearAll },
-        { label: 'Close Panel', action: () => CS.App.togglePanel('favorites') }
+        { label: 'Clear Favourites', action: clearAll }
       ]
     });
 
@@ -56,8 +58,40 @@
     on(clearBtn, 'click', clearAll);
 
     const actions = el('div.fav-actions', {}, [addBtn, clearBtn]);
+    const viewButtons = ['grid', 'compact', 'list'].map((mode) => {
+      const icon = mode === 'grid' ? 'layout-grid' : mode === 'compact' ? 'grid-3x3' : 'list';
+      const label = mode === 'grid' ? 'Grid view' : mode === 'compact' ? 'Compact view' : 'List view';
+      const button = el('button.view-mode-btn', {
+        type: 'button',
+        title: label,
+        html: CS.Icons.svg(icon, 13)
+      });
+      button.dataset.view = mode;
+      button.setAttribute('aria-label', label);
+      on(button, 'click', () => {
+        if (viewMode === mode) return;
+        viewMode = mode;
+        Store.set('favoriteView', mode);
+        updateViewButtons();
+        render();
+      });
+      return button;
+    });
+    const viewBar = el('div.view-mode-bar', {}, [
+      el('span.view-mode-label', { text: 'View' }),
+      el('div.view-mode-switcher', { role: 'group', 'aria-label': 'Favorite color view' }, viewButtons)
+    ]);
 
-    panel.body.append(actions, body);
+    function updateViewButtons() {
+      viewButtons.forEach((button) => {
+        const active = button.dataset.view === viewMode;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    updateViewButtons();
+    panel.body.append(actions, viewBar, body);
 
     /* --- drop handling ------------------------------------------------
      * Two mechanisms land here: native HTML5 drags (favourite chips, palette
@@ -88,6 +122,7 @@
 
     function buildGrid(list) {
       const grid = el('div.fav-grid');
+      grid.classList.add({ grid: 'view-grid', compact: 'view-compact', list: 'view-list' }[viewMode]);
 
       list.forEach((hex, index) => {
         const node = W.chip(hex, {
@@ -141,7 +176,11 @@
           dragFrom = -1;
         });
 
-        grid.appendChild(node);
+        const item = el('div.fav-item', {}, [
+          node,
+          el('span.fav-item-label', { text: hex.toUpperCase() })
+        ]);
+        grid.appendChild(item);
       });
 
       return grid;

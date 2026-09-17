@@ -1634,9 +1634,7 @@
         },
         { separator: true },
         { label: 'Copy Scheme as Hex List', action: () => copyScheme() },
-        { label: 'Add Scheme to Favourites', action: () => addSchemeToFavorites() },
-        { separator: true },
-        { label: 'Close Panel', action: () => CS.App.togglePanel('matching') }
+        { label: 'Add Scheme to Favourites', action: () => addSchemeToFavorites() }
       ]
     });
 

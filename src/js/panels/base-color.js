@@ -25,9 +25,7 @@
         { label: 'Randomize Colour', action: () => Store.setColor(Color.randomRgb()) },
         { separator: true },
         { label: 'Copy Hex Value', action: () => copyHex() },
-        { label: 'Make Web Safe', action: () => Store.setColor(Color.toWebsafe(Store.rgb())) },
-        { separator: true },
-        { label: 'Close Panel', action: () => CS.App.togglePanel('baseColor') }
+        { label: 'Make Web Safe', action: () => Store.setColor(Color.toWebsafe(Store.rgb())) }
       ]
     });
 

@@ -277,9 +277,9 @@ body {
   flex: 0 0 auto;
 }
 .status-pill.is-safe {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--accent);
+  background: var(--success-soft);
+  border-color: var(--success-line);
+  color: var(--success);
 }
 .status-pill.is-warn {
   background: var(--danger-soft);

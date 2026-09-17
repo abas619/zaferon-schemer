@@ -10,7 +10,7 @@
   const Store = CS.Store;
   const W = CS.Widgets;
 
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 16;
 
   function create() {
     let page = 0;
@@ -21,9 +21,7 @@
       onClose: () => CS.App.closeDocument('gallery'),
       onMenu: () => [
         { label: 'Reload Library', action: () => { page = 0; render(); } },
-        { label: 'Open Matching Colors', action: () => CS.App.openDocument('matching') },
-        { separator: true },
-        { label: 'Close', action: () => CS.App.closeDocument('gallery') }
+        { label: 'Open Matching Colors', action: () => CS.App.openDocument('matching') }
       ]
     });
 

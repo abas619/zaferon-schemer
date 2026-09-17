@@ -916,6 +916,64 @@
   border-color: var(--line);
 }
 
+.view-mode-bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 7px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.view-mode-label {
+  color: var(--text-mute);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+}
+
+.view-mode-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+}
+
+.view-mode-btn {
+  width: 25px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: var(--text-mute);
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  cursor: default;
+}
+
+.view-mode-btn:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.view-mode-btn.is-active {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-line);
+}
+
+.view-mode-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
 .fav-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -934,14 +992,67 @@
 
 .fav-grid {
   display: grid;
+  align-content: start;
+}
+
+.fav-grid.view-grid {
   grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
   grid-auto-rows: 24px;
   gap: 3px;
 }
 
+.fav-grid.view-compact {
+  grid-template-columns: repeat(auto-fill, minmax(18px, 1fr));
+  grid-auto-rows: 18px;
+  gap: 2px;
+}
+
+.fav-grid.view-list {
+  grid-template-columns: 1fr;
+  gap: 4px;
+}
+
+.fav-item {
+  min-width: 0;
+  min-height: 0;
+}
+
+.fav-grid.view-grid .fav-item,
+.fav-grid.view-compact .fav-item {
+  height: 100%;
+}
+
 .fav-chip {
   width: 100%;
   height: 100%;
+}
+
+.fav-item-label {
+  display: none;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+}
+
+.fav-grid.view-list .fav-item {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.fav-grid.view-list .fav-chip {
+  flex: 0 0 38px;
+  width: 38px !important;
+  height: 22px !important;
+}
+
+.fav-grid.view-list .fav-item-label {
+  display: inline;
 }
 
 .fav-drop {
@@ -1046,18 +1157,36 @@
 .browser-head {
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
   gap: 6px;
   padding: 6px 8px;
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
 }
 
+.browser-view-switcher {
+  flex: 0 0 auto;
+}
+
 .browser-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
   gap: 5px;
   padding: 10px;
   align-content: start;
+}
+
+.browser-grid.view-grid {
+  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+}
+
+.browser-grid.view-compact {
+  grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));
+  gap: 3px;
+}
+
+.browser-grid.view-list {
+  grid-template-columns: 1fr;
+  gap: 4px;
 }
 
 .browser-cell {
@@ -1065,6 +1194,27 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  min-width: 0;
+}
+
+.browser-grid.view-compact .browser-label {
+  display: none;
+}
+
+.browser-grid.view-list .browser-cell {
+  height: 34px;
+  flex-direction: row;
+  gap: 9px;
+  padding: 3px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.browser-grid.view-list .color-chip {
+  flex: 0 0 56px;
+  width: 56px !important;
+  height: 24px !important;
 }
 
 .browser-label {
@@ -1073,8 +1223,46 @@
   color: var(--text-dim);
 }
 
+.browser-grid.view-list .browser-label {
+  font-size: 10px;
+}
+
 .browser-schemes {
   padding: 10px;
+}
+
+.browser-schemes.view-compact {
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+}
+
+.browser-schemes.view-compact .scheme-swatches {
+  height: 28px;
+}
+
+.browser-schemes.view-compact .scheme-meta {
+  display: none;
+}
+
+.browser-schemes.view-list {
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.browser-schemes.view-list .scheme-card {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.browser-schemes.view-list .scheme-card-head,
+.browser-schemes.view-list .scheme-meta {
+  margin: 0;
+}
+
+.browser-schemes.view-list .scheme-swatches {
+  height: 26px;
 }
 
 /* ================================================================== *

@@ -185,6 +185,8 @@
   function createBrowser() {
     let query = '';
     let source = 'favorites';
+    let viewMode = Store.get('browserView', 'grid');
+    if (!['grid', 'compact', 'list'].includes(viewMode)) viewMode = 'grid';
 
     const panel = W.panel('SchemeBrowser', {
       onClose: () => CS.App.closeDocument('browser'),
@@ -197,6 +199,29 @@
     });
 
     const searchInput = el('input', { type: 'text', placeholder: 'Search colors', spellcheck: 'false' });
+    const viewButtons = ['grid', 'compact', 'list'].map((mode) => {
+      const icon = mode === 'grid' ? 'layout-grid' : mode === 'compact' ? 'grid-3x3' : 'list';
+      const label = mode === 'grid' ? 'Grid view' : mode === 'compact' ? 'Compact view' : 'List view';
+      const button = el('button.view-mode-btn', {
+        type: 'button',
+        title: label,
+        html: CS.Icons.svg(icon, 13)
+      });
+      button.dataset.view = mode;
+      button.setAttribute('aria-label', label);
+      on(button, 'click', () => {
+        if (viewMode === mode) return;
+        viewMode = mode;
+        Store.set('browserView', mode);
+        updateViewButtons();
+        render();
+      });
+      return button;
+    });
+    const viewSwitcher = el('div.view-mode-switcher.browser-view-switcher', {
+      role: 'group',
+      'aria-label': 'Scheme browser view'
+    }, viewButtons);
     const head = el('div.browser-head', {}, [
       W.select({
         options: [
@@ -210,10 +235,20 @@
           render();
         }
       }),
-      el('div.search-field', { style: { flex: '1 1 auto' } }, [searchInput])
+      el('div.search-field', { style: { flex: '1 1 auto' } }, [searchInput]),
+      viewSwitcher
     ]);
 
+    function updateViewButtons() {
+      viewButtons.forEach((button) => {
+        const active = button.dataset.view === viewMode;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+    }
+
     const scroll = el('div.panel-scroll');
+    updateViewButtons();
     panel.body.append(head, scroll);
 
     on(searchInput, 'input', () => {
@@ -231,6 +266,7 @@
           return;
         }
         const grid = el('div.browser-grid');
+        grid.classList.add({ grid: 'view-grid', compact: 'view-compact', list: 'view-list' }[viewMode]);
         list.forEach((hex) => {
           const cell = el('div.browser-cell');
           const chipEl = W.chip(hex, {
@@ -258,6 +294,7 @@
         return;
       }
       const grid = el('div.gallery-grid.browser-schemes');
+      grid.classList.add({ grid: 'view-grid', compact: 'view-compact', list: 'view-list' }[viewMode]);
       schemes.forEach((scheme) => {
         const card = el('div.scheme-card');
         const swatches = el('div.scheme-swatches');
