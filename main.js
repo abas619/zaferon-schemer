@@ -16,6 +16,8 @@ const {
 const path = require('path');
 const fs = require('fs');
 
+const { createPickerOverlay } = require('./picker-overlay');
+
 const ROOT = __dirname;
 const SRC = path.join(ROOT, 'src');
 
@@ -305,63 +307,16 @@ ipcMain.handle('picker:start', async () => {
           (display.id === screen.getPrimaryDisplay().id ? sources[0] : null);
         if (!source) return;
 
-        const image = source.thumbnail;
-        const size = image.getSize();
-        if (!size.width || !size.height) return;
-
-        const overlay = new BrowserWindow({
-          x: display.bounds.x,
-          y: display.bounds.y,
-          width: display.bounds.width,
-          height: display.bounds.height,
-          frame: false,
-          resizable: false,
-          movable: false,
-          minimizable: false,
-          maximizable: false,
-          fullscreenable: false,
-          skipTaskbar: true,
-          alwaysOnTop: true,
-          show: false,
-          backgroundColor: '#000000',
-          useContentSize: true,
-          webPreferences: {
-            preload: path.join(ROOT, 'preload.js'),
-            contextIsolation: true,
-            nodeIntegration: false,
-            backgroundThrottling: false
+        const built = createPickerOverlay(display, source.thumbnail, {
+          onClosed: () => {
+            if (settled) return;
+            // If the last overlay goes away without a pick, treat as cancel.
+            if (overlays.every((w) => w.isDestroyed())) finish(null);
           }
         });
+        if (!built) return;
 
-        try {
-          overlay.setAlwaysOnTop(true, 'screen-saver');
-        } catch (_) {
-          /* ignore */
-        }
-
-        overlay.loadFile(path.join(SRC, 'picker.html'));
-
-        overlay.webContents.once('did-finish-load', () => {
-          if (overlay.isDestroyed()) return;
-          overlay.webContents.send('picker:init', {
-            image: image.toDataURL(),
-            imageWidth: size.width,
-            imageHeight: size.height,
-            bounds: display.bounds,
-            scaleFactor: display.scaleFactor,
-            isPrimary: display.id === screen.getPrimaryDisplay().id
-          });
-          overlay.show();
-          if (display.id === screen.getPrimaryDisplay().id) overlay.focus();
-        });
-
-        overlay.on('closed', () => {
-          if (settled) return;
-          // If the last overlay goes away without a pick, treat as cancel.
-          if (overlays.every((w) => w.isDestroyed())) finish(null);
-        });
-
-        overlays.push(overlay);
+        overlays.push(built.overlay);
       });
 
       if (!overlays.length) {

@@ -52,12 +52,12 @@
     return { h: Math.round(h), s: Math.round((max === 0 ? 0 : d / max) * 100), v: Math.round(max * 100) };
   }
 
-  function sample(px, py) {
-    const x = Math.max(0, Math.min(imgW - 1, Math.round(px)));
-    const y = Math.max(0, Math.min(imgH - 1, Math.round(py)));
-    if (!img) return { r: 0, g: 0, b: 0, px: x, py: y };
-
-    // Draw the image once into an offscreen buffer so we can read pixels.
+  /* Draw the frozen screenshot once into an offscreen buffer, because
+   * `getImageData` needs a canvas, not an <img>. Built lazily on the first
+   * sample and re-used after that — rebuilding per move would be a full
+   * re-draw of a 1920x1080 frame on every mouse event. */
+  function ensureBuf() {
+    if (!img) return null;
     if (!sample.buf || sample.buf.width !== imgW || sample.buf.height !== imgH) {
       sample.buf = document.createElement('canvas');
       sample.buf.width = imgW;
@@ -65,7 +65,15 @@
       sample.bufCtx = sample.buf.getContext('2d', { willReadFrequently: true });
       sample.bufCtx.drawImage(img, 0, 0, imgW, imgH);
     }
-    const d = sample.bufCtx.getImageData(x, y, 1, 1).data;
+    return sample.bufCtx;
+  }
+
+  function sample(px, py) {
+    const x = Math.max(0, Math.min(imgW - 1, Math.round(px)));
+    const y = Math.max(0, Math.min(imgH - 1, Math.round(py)));
+    const ctx = ensureBuf();
+    if (!ctx) return { r: 0, g: 0, b: 0, px: x, py: y };
+    const d = ctx.getImageData(x, y, 1, 1).data;
     return { r: d[0], g: d[1], b: d[2], px: x, py: y };
   }
 
@@ -244,12 +252,36 @@
 
     img = new Image();
     img.onload = () => {
-      primePixels();
+      /* `ready` is set FIRST, and everything below it is best-effort. This
+       * ordering is the whole fix for the dead eyedropper: a call to a
+       * function that did not exist used to throw right here, so `ready`
+       * stayed false and `update()` returned on its first line for the rest
+       * of the session — no crosshair following the pointer, no loupe, no
+       * hex readout, and a click that sampled nothing the user could aim at. */
       ready = true;
+
+      // Trust the decoded image over the size the main process declared.
+      imgW = img.naturalWidth || imgW;
+      imgH = img.naturalHeight || imgH;
+
+      try {
+        ensureBuf();
+      } catch (_) {
+        /* sample() builds the buffer lazily too, so this is only a warm-up */
+      }
+
       const startX = Math.round(window.innerWidth / 2);
       const startY = Math.round(window.innerHeight / 2);
       update(startX, startY);
     };
+
+    /* Without this the overlay just stays black with no explanation, and the
+     * only way out is Esc. Say what happened instead. */
+    img.onerror = () => {
+      const hint = document.querySelector('.hint');
+      if (hint) hint.textContent = 'Could not read the screen capture — press Esc to cancel.';
+    };
+
     img.src = data.image;
   });
 

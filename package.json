@@ -19,7 +19,8 @@
     "store-test": "node build/store-test.js",
     "css-check": "node build/css-coverage.js",
     "preview": "node build/preview.js",
-    "preview-metrics": "node build/preview-metrics.js"
+    "preview-metrics": "node build/preview-metrics.js",
+    "picker-test": "electron build/picker-test.js"
   },
   "keywords": [
     "color",
