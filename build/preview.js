@@ -36,7 +36,7 @@ if (!CHROME) {
   process.exit(1);
 }
 
-const COLS = 4;
+const COLS = 5;
 
 const CONFIGS = [
   { name: 'light-373', theme: 'light', w: 373, h: 640, dock: 1 },

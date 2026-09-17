@@ -929,6 +929,46 @@ textarea::placeholder {
   color: var(--on-accent);
 }
 
+/* Tone buttons — lighter / darker / vivid / muted.
+ *
+ * Deliberately the same 22px height as `.bc-inc` below them: the two rows are
+ * both "press me to change the colour by one notch", and giving them different
+ * footprints made the Step row look like a different kind of control.
+ *
+ * They share the width instead of taking a fixed 30px each. At the 373px dock
+ * four fixed buttons look right, but at 180px the row overflowed and wrapped
+ * 3 + 1, which reads as a mistake. Letting them flex keeps one row at every
+ * dock width and caps them so they do not stretch on a wide panel. */
+.bc-tone-row {
+  gap: var(--sp-1);
+  flex-wrap: nowrap;
+}
+.bc-tone {
+  flex: 1 1 0;
+  min-width: 24px;
+  max-width: 34px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+.bc-tone:hover {
+  border-color: var(--border-3);
+  color: var(--text);
+}
+.bc-tone:active {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
 /* The caption that tells you what the step applies to. */
 .bc-hint {
   font-size: 10px;
@@ -1092,7 +1132,15 @@ textarea::placeholder {
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   overflow: hidden;
-  cursor: pointer;
+  /* Grab, not pointer: these are drag sources now. A click still copies the
+   * hex, but dragging into Favorite Colors is the action worth advertising. */
+  cursor: grab;
+}
+.conv-cvd:active {
+  cursor: grabbing;
+}
+.conv-cvd.is-dragging {
+  opacity: 0.5;
 }
 .conv-cvd span {
   position: absolute;
@@ -1158,11 +1206,15 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Grow to fill the tab and centre the wheel + readout group. Without this the
-   * pair packs to the top and leaves a dead band under the readout, so the gap
-   * above the wheel and the gap below it stop matching. `safe` keeps the top of
-   * the group reachable when the panel is too short to centre it. */
-  justify-content: safe center;
+  /* Packed to the top, directly under the colour swatch.
+   *
+   * This used to be `safe center`, which centred the wheel + readout group in
+   * whatever height the tab had. That left a dead band above the wheel that
+   * grew with the dock — at 373x640 it was 72px of nothing between the swatch
+   * and the wheel, which reads as a broken layout rather than as spacing. The
+   * slack now sits below the readout instead, where it looks like the end of
+   * the panel. */
+  justify-content: flex-start;
   flex: 1 1 auto;
   min-height: 0;
   gap: var(--section-gap);

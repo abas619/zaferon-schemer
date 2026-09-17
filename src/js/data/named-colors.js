@@ -151,36 +151,119 @@
     ['Yellow Green', '9ACD32']
   ];
 
-  /* --- Material Design 2014 ---------------------------------------- */
-  const MATERIAL = [
-    ['Red 500', 'F44336'],
-    ['Pink 500', 'E91E63'],
-    ['Purple 500', '9C27B0'],
-    ['Deep Purple 500', '673AB7'],
-    ['Indigo 500', '3F51B5'],
-    ['Blue 500', '2196F3'],
-    ['Light Blue 500', '03A9F4'],
-    ['Cyan 500', '00BCD4'],
-    ['Teal 500', '009688'],
-    ['Green 500', '4CAF50'],
-    ['Light Green 500', '8BC34A'],
-    ['Lime 500', 'CDDC39'],
-    ['Yellow 500', 'FFEB3B'],
-    ['Amber 500', 'FFC107'],
-    ['Orange 500', 'FF9800'],
-    ['Deep Orange 500', 'FF5722'],
-    ['Brown 500', '795548'],
-    ['Grey 500', '9E9E9E'],
-    ['Blue Grey 500', '607D8B'],
-    ['Amber 900', 'FF6F00'],
-    ['Deep Orange 900', 'BF360C'],
-    ['Teal 900', '004D40'],
-    ['Indigo 900', '1A237E'],
-    ['Deep Purple 900', '311B92'],
-    ['Red 900', 'B71C1C'],
-    ['Green 900', '1B5E20'],
-    ['Blue 900', '0D47A1'],
-    ['Grey 900', '212121']
+  /* --- Material Design 2014 ----------------------------------------
+   *
+   * Held as ramps rather than as a flat list of names, because that is how the
+   * palette is defined and how it is used: pick a hue, then pick a weight. The
+   * previous version listed only the 500s plus a handful of 900s, so Red 100
+   * was simply absent from the library.
+   *
+   * Each row runs 50, 100, 200 … 900 — see MATERIAL_SHADES for the order. */
+  const MATERIAL_RAMPS = {
+    Red: ['FFEBEE', 'FFCDD2', 'EF9A9A', 'E57373', 'EF5350', 'F44336', 'E53935', 'D32F2F', 'C62828', 'B71C1C'],
+    Pink: ['FCE4EC', 'F8BBD0', 'F48FB1', 'F06292', 'EC407A', 'E91E63', 'D81B60', 'C2185B', 'AD1457', '880E4F'],
+    Purple: ['F3E5F5', 'E1BEE7', 'CE93D8', 'BA68C8', 'AB47BC', '9C27B0', '8E24AA', '7B1FA2', '6A1B9A', '4A148C'],
+    'Deep Purple': ['EDE7F6', 'D1C4E9', 'B39DDB', '9575CD', '7E57C2', '673AB7', '5E35B1', '512DA8', '4527A0', '311B92'],
+    Indigo: ['E8EAF6', 'C5CAE9', '9FA8DA', '7986CB', '5C6BC0', '3F51B5', '3949AB', '303F9F', '283593', '1A237E'],
+    Blue: ['E3F2FD', 'BBDEFB', '90CAF9', '64B5F6', '42A5F5', '2196F3', '1E88E5', '1976D2', '1565C0', '0D47A1'],
+    'Light Blue': ['E1F5FE', 'B3E5FC', '81D4FA', '4FC3F7', '29B6F6', '03A9F4', '039BE5', '0288D1', '0277BD', '01579B'],
+    Cyan: ['E0F7FA', 'B2EBF2', '80DEEA', '4DD0E1', '26C6DA', '00BCD4', '00ACC1', '0097A7', '00838F', '006064'],
+    Teal: ['E0F2F1', 'B2DFDB', '80CBC4', '4DB6AC', '26A69A', '009688', '00897B', '00796B', '00695C', '004D40'],
+    Green: ['E8F5E9', 'C8E6C9', 'A5D6A7', '81C784', '66BB6A', '4CAF50', '43A047', '388E3C', '2E7D32', '1B5E20'],
+    'Light Green': ['F1F8E9', 'DCEDC8', 'C5E1A5', 'AED581', '9CCC65', '8BC34A', '7CB342', '689F38', '558B2F', '33691E'],
+    Lime: ['F9FBE7', 'F0F4C3', 'E6EE9C', 'DCE775', 'D4E157', 'CDDC39', 'C0CA33', 'AFB42B', '9E9D24', '827717'],
+    Yellow: ['FFFDE7', 'FFF9C4', 'FFF59D', 'FFF176', 'FFEE58', 'FFEB3B', 'FDD835', 'FBC02D', 'F9A825', 'F57F17'],
+    Amber: ['FFF8E1', 'FFECB3', 'FFE082', 'FFD54F', 'FFCA28', 'FFC107', 'FFB300', 'FFA000', 'FF8F00', 'FF6F00'],
+    Orange: ['FFF3E0', 'FFE0B2', 'FFCC80', 'FFB74D', 'FFA726', 'FF9800', 'FB8C00', 'F57C00', 'EF6C00', 'E65100'],
+    'Deep Orange': ['FBE9E7', 'FFCCBC', 'FFAB91', 'FF8A65', 'FF7043', 'FF5722', 'F4511E', 'E64A19', 'D84315', 'BF360C'],
+    Brown: ['EFEBE9', 'D7CCC8', 'BCAAA4', 'A1887F', '8D6E63', '795548', '6D4C41', '5D4037', '4E342E', '3E2723'],
+    Grey: ['FAFAFA', 'F5F5F5', 'EEEEEE', 'E0E0E0', 'BDBDBD', '9E9E9E', '757575', '616161', '424242', '212121'],
+    'Blue Grey': ['ECEFF1', 'CFD8DC', 'B0BEC5', '90A4AE', '78909C', '607D8B', '546E7A', '455A64', '37474F', '263238']
+  };
+
+  const MATERIAL_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
+  /* Accents. Only the chromatic families have them, and the weights are a
+   * different set from the main ramp — A100 is lighter than 100 but A700 is
+   * darker than 900, so they cannot be folded into the same row. */
+  const MATERIAL_ACCENTS = {
+    Red: ['FF8A80', 'FF5252', 'FF1744', 'D50000'],
+    Pink: ['FF80AB', 'FF4081', 'F50057', 'C51162'],
+    Purple: ['EA80FC', 'E040FB', 'D500F9', 'AA00FF'],
+    'Deep Purple': ['B388FF', '7C4DFF', '651FFF', '6200EA'],
+    Indigo: ['8C9EFF', '536DFE', '3D5AFE', '304FFE'],
+    Blue: ['82B1FF', '448AFF', '2979FF', '2962FF'],
+    'Light Blue': ['80D8FF', '40C4FF', '00B0FF', '0091EA'],
+    Cyan: ['84FFFF', '18FFFF', '00E5FF', '00B8D4'],
+    Teal: ['A7FFEB', '64FFDA', '1DE9B6', '00BFA5'],
+    Green: ['B9F6CA', '69F0AE', '00E676', '00C853'],
+    'Light Green': ['CCFF90', 'B2FF59', '76FF03', '64DD17'],
+    Lime: ['F4FF81', 'EEFF41', 'C6FF00', 'AEEA00'],
+    Yellow: ['FFFF8D', 'FFFF00', 'FFEA00', 'FFD600'],
+    Amber: ['FFE57F', 'FFD740', 'FFC400', 'FFAB00'],
+    Orange: ['FFD180', 'FFAB40', 'FF9100', 'FF6D00'],
+    'Deep Orange': ['FF9E80', 'FF6E40', 'FF3D00', 'DD2C00']
+  };
+
+  const ACCENT_SHADES = ['A100', 'A200', 'A400', 'A700'];
+
+  function materialList() {
+    const out = [];
+    Object.keys(MATERIAL_RAMPS).forEach((family) => {
+      MATERIAL_RAMPS[family].forEach((hex, i) => {
+        out.push([`${family} ${MATERIAL_SHADES[i]}`, hex]);
+      });
+      const accents = MATERIAL_ACCENTS[family];
+      if (accents) {
+        accents.forEach((hex, i) => out.push([`${family} ${ACCENT_SHADES[i]}`, hex]));
+      }
+    });
+    return out;
+  }
+
+  /* --- Retro -------------------------------------------------------
+   *
+   * Period colour by decade. The names carry the decade so a search for "80s"
+   * narrows the list, which is the only way to use this library — nobody looks
+   * for "Neon Pink" by name, they scroll the eighties. */
+  const RETRO = [
+    // Seventies — warm, earthy, everything slightly faded.
+    ['70s Harvest Gold', 'E3A72F'],
+    ['70s Avocado', 'A8B545'],
+    ['70s Burnt Orange', 'C0562A'],
+    ['70s Rust', '9C4722'],
+    ['70s Mustard', 'D4A017'],
+    ['70s Olive', '6B6B2E'],
+    ['70s Teal', '2E7B7B'],
+    ['70s Faded Denim', '4A6FA5'],
+    ['70s Cocoa', '6B4226'],
+    ['70s Cream', 'F2E3C6'],
+    ['70s Paprika', 'B33A2B'],
+    ['70s Sage', '9CAF88'],
+
+    // Eighties — saturated, synthetic, deliberately loud.
+    ['80s Neon Pink', 'FF2E88'],
+    ['80s Hot Magenta', 'E0218A'],
+    ['80s Electric Blue', '1F51FF'],
+    ['80s Neon Cyan', '00F0FF'],
+    ['80s Laser Lemon', 'F2F230'],
+    ['80s Purple Rain', '7B2FF7'],
+    ['80s Miami Teal', '00D9C0'],
+    ['80s Sunset Orange', 'FF6B35'],
+    ['80s Bubblegum', 'FF6EC7'],
+    ['80s Grid Purple', '3A0CA3'],
+
+    // Nineties — the saturation drops back out; dusty and muted.
+    ['90s Dusty Rose', 'C08A8A'],
+    ['90s Muted Teal', '6FA8A0'],
+    ['90s Denim Blue', '3B5F8A'],
+    ['90s Mustard', 'C9A227'],
+    ['90s Plum', '7A4E6E'],
+    ['90s Sage Green', 'A3B18A'],
+    ['90s Terracotta', 'C97B63'],
+    ['90s Off White', 'EFE7D6'],
+    ['90s Slate Blue', '5B6C8F'],
+    ['90s Forest', '2F5D3A']
   ];
 
   /* --- Pantone-ish / classic design swatches ------------------------ */
@@ -237,9 +320,10 @@
 
   const LIBRARIES = [
     { id: 'html', label: 'HTML Named Colors', colors: build(HTML_NAMED) },
-    { id: 'material', label: 'Material Design', colors: build(MATERIAL) },
+    { id: 'material', label: 'Material Design', colors: build(materialList()) },
     { id: 'classic', label: 'Classic Design', colors: build(CLASSIC) },
-    { id: 'utility', label: 'Utility Palettes', colors: build(UTILITY) }
+    { id: 'utility', label: 'Utility Palettes', colors: build(UTILITY) },
+    { id: 'retro', label: 'Retro', colors: build(RETRO) }
   ];
 
   CS.NamedColors = {

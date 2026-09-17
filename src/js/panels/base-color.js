@@ -224,6 +224,47 @@
       adjModelSelect
     ]);
 
+    /* Tone buttons.
+     *
+     * Adjustments moves one channel at a time, so "a bit lighter" means picking
+     * the right colour model first and then hunting the right slider. These
+     * four do the common moves in a single click. They work in HSV because that
+     * is the space where brightness and saturation are each a single axis — in
+     * RGB, lightening scales all three channels and desaturating pulls them
+     * together, and neither is a one-slider change.
+     *
+     * The amount comes from the Step row below, so the two rows agree: the
+     * increment is an RGB step out of 255, and the same number reads as a
+     * percentage here. Shift ×10, matching the arrow keys. */
+    const TONES = [
+      { id: 'lighter', icon: 'sun-medium', label: 'Lighter', verb: 'Raise brightness', axis: 'v', dir: 1 },
+      { id: 'darker', icon: 'moon', label: 'Darker', verb: 'Lower brightness', axis: 'v', dir: -1 },
+      { id: 'vivid', icon: 'droplets', label: 'More saturated', verb: 'Raise saturation', axis: 's', dir: 1 },
+      { id: 'muted', icon: 'droplet-off', label: 'Less saturated', verb: 'Lower saturation', axis: 's', dir: -1 }
+    ];
+
+    const tonePercent = (shift) => Store.get('increment', 5) * (shift ? 10 : 1);
+    const toneTitle = (t, shift) => `${t.verb} by ${tonePercent(shift)}%. Hold Shift for ×10.`;
+
+    const toneBtns = TONES.map((t) => {
+      const b = el('button.bc-tone', {
+        type: 'button',
+        html: CS.Icons.svg(t.icon, 15),
+        'aria-label': t.label
+      });
+      b.title = toneTitle(t, false);
+      on(b, 'click', (e) => {
+        const amount = tonePercent(e.shiftKey) / 100;
+        Store.nudge(0, t.axis === 's' ? t.dir * amount : 0, t.axis === 'v' ? t.dir * amount : 0);
+      });
+      return b;
+    });
+
+    const toneRow = el('div.bc-row.bc-tone-row', {}, [
+      el('span.bc-label', { text: 'Tone:' }),
+      ...toneBtns
+    ]);
+
     /* Arrow-key step.
      *
      * These buttons only ever set a number — the effect is on the arrow keys,
@@ -256,6 +297,11 @@
         el('kbd', { text: '←→' }), ' hue · ',
         el('kbd', { text: 'Shift' }), ' ×10'
       );
+      // The tone buttons above are sized by this same number, so their tooltips
+      // have to follow it or they promise a step the app will not take.
+      toneBtns.forEach((b, i) => {
+        b.title = toneTitle(TONES[i], false);
+      });
     }
 
     incrementRow.append(el('span.bc-label', { text: 'Step:' }), ...incrementBtns);
@@ -297,6 +343,7 @@
       el('div.bc-sep'),
       adjHead,
       adjHost,
+      toneRow,
       el('div.bc-sep'),
       incrementRow,
       incrementHint,
@@ -929,12 +976,16 @@
         const hex = Color.toHexUpper(sim);
         const box = el('div.conv-cvd');
         box.style.background = Color.toHex(sim);
-        box.title = `${t.id === 'none' ? 'Normal vision' : t.label} — ${hex}`;
+        box.title = `${t.id === 'none' ? 'Normal vision' : t.label} — ${hex} · drag into Favorite Colors`;
         box.setAttribute('data-hex', hex);
         /* White ink vanishes into a pale swatch, so flip it on luminance. */
         if (Color.relativeLuminance(sim) > 0.45) box.classList.add('is-light');
         box.appendChild(el('span', { text: CVD_SHORT[t.id] || t.label }));
+        /* Click copies, drag saves. Both gestures on one element: the HTML5 drag
+         * only starts once the pointer moves, so a plain click still reaches the
+         * handler below. */
         on(box, 'click', () => copyText(hex));
+        W.makeDraggable(box, () => hex);
         cvdStrip.appendChild(box);
       });
     }

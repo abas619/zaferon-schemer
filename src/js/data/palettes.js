@@ -93,7 +93,8 @@
     { id: 'html', label: 'HTML Named', build: () => libraryGrid('html') },
     { id: 'material', label: 'Material', build: () => libraryGrid('material') },
     { id: 'classic', label: 'Classic Design', build: () => libraryGrid('classic') },
-    { id: 'utility', label: 'Utility', build: () => libraryGrid('utility') }
+    { id: 'utility', label: 'Utility', build: () => libraryGrid('utility') },
+    { id: 'retro', label: 'Retro', build: () => libraryGrid('retro') }
   ];
 
   CS.Palettes = {

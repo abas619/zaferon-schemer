@@ -69,6 +69,8 @@
   document.body.dataset.theme = theme;
 
   CS.Store.setColor(params.get('hex') || '#F4C430');
+  /* Which library the Library column shows — `?library=retro` etc. */
+  CS.Store.set('librarySet', params.get('library') || 'html');
 
   const stage = document.getElementById('stage');
   const useDock = params.get('dock') === '1';
@@ -78,6 +80,7 @@
     ['Base Color — Wheel', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('wheel'); }],
     ['Base Color — RGB (Step row)', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('rgb'); }],
     ['Base Color — Convert', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('convert'); }],
+    ['Base Color — Library', (m) => { const p = CS.Panels.BaseColor.create(); m.appendChild(p.root); p.showTab('library'); }],
     ['Color Palette', (m) => {
       const host = document.createElement('div');
       host.className = 'palette-host';
@@ -110,6 +113,210 @@
     }
   });
   stage.appendChild(row);
+
+  /* `?probe=<mode>` drives real interactions and dumps assertions into a <pre>,
+   * so behaviour that a screenshot cannot show — a button moving the colour the
+   * wrong way, a swatch that is not a drag source, a library rendering fewer
+   * rows than it declares — is checked instead of eyeballed. Read it with
+   * `--dump-dom` (see build/panel-probe.js). */
+  const probeMode = params.get('probe');
+  if (probeMode) {
+    const lines = [];
+    const mount = document.createElement('div');
+    mount.style.width = '373px';
+    stage.appendChild(mount);
+
+    const finish = (tag) => {
+      const pre = document.createElement('pre');
+      pre.id = 'probe';
+      pre.textContent = tag + '\n' + lines.join('\n');
+      document.body.appendChild(pre);
+      document.title = tag.toLowerCase() + '-ready';
+    };
+
+    const hsvNow = () => {
+      const h = CS.Store.hsv();
+      return { h: +h.h.toFixed(1), s: +h.s.toFixed(3), v: +h.v.toFixed(3) };
+    };
+
+    /* --- RGB tab: the four tone buttons --------------------------- */
+    if (probeMode === 'tone') {
+      const panel = CS.Panels.BaseColor.create();
+      mount.appendChild(panel.root);
+      panel.showTab('rgb');
+
+      const btns = [...mount.querySelectorAll('.bc-tone')];
+      lines.push(`buttons: ${btns.length}`);
+
+      /* Mid saturation, mid brightness — every direction has room to move. A
+       * grey start would make "less saturated" a legitimate no-op and look like
+       * a broken button. */
+      const START = '#805540';
+      CS.Store.set('increment', 5);
+
+      [
+        [0, 'Lighter', 'v', +1],
+        [1, 'Darker', 'v', -1],
+        [2, 'More saturated', 's', +1],
+        [3, 'Less saturated', 's', -1]
+      ].forEach(([i, label, axis, dir]) => {
+        if (!btns[i]) {
+          lines.push(`FAIL ${label}: button missing`);
+          return;
+        }
+        CS.Store.setColor(START);
+        const before = hsvNow();
+        btns[i].click();
+        const after = hsvNow();
+        const delta = +(after[axis] - before[axis]).toFixed(3);
+        const ok = Math.sign(delta) === dir && Math.abs(delta) > 0;
+        lines.push(
+          `${ok ? 'ok  ' : 'FAIL'} ${label}: ${axis} ${before[axis]} -> ${after[axis]} (d ${delta}), want ${dir > 0 ? '+' : '-'}`
+        );
+        /* Nothing else may move — a tone button that also shifts hue, or the
+         * other axis, would be quietly wrong rather than obviously broken. */
+        ['h', 's', 'v']
+          .filter((k) => k !== axis)
+          .forEach((k) => {
+            const d = +(after[k] - before[k]).toFixed(3);
+            if (Math.abs(d) > 0.002) lines.push(`FAIL ${label}: ${k} moved by ${d}`);
+          });
+      });
+
+      /* The Step row must drive the size of the tone step. */
+      CS.Store.setColor(START);
+      CS.Store.set('increment', 25);
+      const b25 = hsvNow();
+      btns[0].click();
+      const step25 = +(hsvNow().v - b25.v).toFixed(3);
+      lines.push(
+        `${Math.abs(step25 - 0.25) < 0.002 ? 'ok  ' : 'FAIL'} step follows increment: 25 -> ${step25}`
+      );
+      finish('TONE-PROBE');
+      return;
+    }
+
+    /* --- Convert tab: colour-vision swatches as drag sources ------ */
+    if (probeMode === 'cvd') {
+      const panel = CS.Panels.BaseColor.create();
+      mount.appendChild(panel.root);
+      panel.showTab('convert');
+
+      const boxes = [...mount.querySelectorAll('.conv-cvd')];
+      lines.push(`swatches: ${boxes.length}`);
+
+      boxes.forEach((box) => {
+        const want = box.getAttribute('data-hex');
+        const label = (box.textContent || '').trim();
+        const draggable = box.draggable === true;
+        const cursor = getComputedStyle(box).cursor;
+
+        /* Fire a real dragstart carrying a DataTransfer and read the payload
+         * back — that is the exact handshake the Favorites drop zone reads. */
+        let payload = '';
+        try {
+          const dt = new DataTransfer();
+          box.dispatchEvent(
+            new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: dt })
+          );
+          payload = dt.getData('application/x-zaferon-color') || dt.getData('text/plain');
+        } catch (err) {
+          payload = 'ERROR: ' + err.message;
+        }
+
+        const ok =
+          draggable &&
+          cursor === 'grab' &&
+          String(payload).toUpperCase() === String(want).toUpperCase();
+        lines.push(
+          `${ok ? 'ok  ' : 'FAIL'} ${label}: draggable=${draggable} cursor=${cursor} payload=${payload || '(empty)'} want=${want}`
+        );
+      });
+      finish('CVD-PROBE');
+      return;
+    }
+
+    /* --- Library tab: every library renders what it declares ------ */
+    if (probeMode === 'library') {
+      const panel = CS.Panels.BaseColor.create();
+      mount.appendChild(panel.root);
+      panel.showTab('library');
+
+      const ids = CS.NamedColors.LIBRARIES.map((l) => l.id);
+      lines.push(`libraries: ${ids.join(', ')}`);
+
+      const search = mount.querySelector('.bc-lib-search input');
+      if (!search) {
+        lines.push('FAIL no search field — cannot force a re-render');
+        finish('LIB-PROBE');
+        return;
+      }
+
+      ids.forEach((id) => {
+        const lib = CS.NamedColors.get(id);
+        CS.Store.set('librarySet', id);
+        search.dispatchEvent(new Event('input', { bubbles: true }));
+        const rows = mount.querySelectorAll('.lib-row').length;
+        lines.push(
+          `${rows === lib.colors.length && rows > 0 ? 'ok  ' : 'FAIL'} ${lib.label}: ${rows} rows for ${lib.colors.length} colours`
+        );
+      });
+
+      /* The whole point of the Material entry is that it is a ramp per hue. */
+      const mat = CS.NamedColors.get('material');
+      const FAMILIES = [
+        'Red', 'Pink', 'Purple', 'Deep Purple', 'Indigo', 'Blue', 'Light Blue', 'Cyan',
+        'Teal', 'Green', 'Light Green', 'Lime', 'Yellow', 'Amber', 'Orange', 'Deep Orange',
+        'Brown', 'Grey', 'Blue Grey'
+      ];
+      const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+      const missing = [];
+      FAMILIES.forEach((fam) =>
+        SHADES.forEach((s) => {
+          if (!mat.colors.some((c) => c.name === `${fam} ${s}`)) missing.push(`${fam} ${s}`);
+        })
+      );
+      lines.push(
+        `${missing.length ? 'FAIL' : 'ok  '} material ramp: ${FAMILIES.length * SHADES.length - missing.length}/${FAMILIES.length * SHADES.length} present` +
+          (missing.length ? ` — missing ${missing.slice(0, 8).join(', ')}` : '')
+      );
+
+      const retro = CS.NamedColors.LIBRARIES.find((l) => l.id === 'retro');
+      lines.push(
+        `${retro && retro.colors.length >= 24 ? 'ok  ' : 'FAIL'} retro palette: ${retro ? retro.colors.length + ' colours' : 'MISSING'}`
+      );
+
+      /* A duplicate name *within* one library is a real bug — the search would
+       * return two rows the user cannot tell apart. Across libraries it is
+       * expected: Material and Tailwind both define "Red 600", and search is
+       * scoped to the selected library, so they never collide in the UI. */
+      const dupWithin = CS.NamedColors.LIBRARIES.map((l) => {
+        const seen = new Set();
+        const dup = new Set();
+        l.colors.forEach((c) => (seen.has(c.name) ? dup.add(c.name) : seen.add(c.name)));
+        return { label: l.label, dup: [...dup] };
+      }).filter((r) => r.dup.length);
+      lines.push(
+        dupWithin.length === 0
+          ? 'ok   no duplicate names within any library'
+          : `FAIL duplicate names within a library: ${dupWithin.map((r) => `${r.label} (${r.dup.join(', ')})`).join('; ')}`
+      );
+
+      const all = CS.NamedColors.all();
+      const crossNames = all.length - new Set(all.map((c) => c.name)).size;
+      const crossHex = all.length - new Set(all.map((c) => c.hex.toLowerCase())).size;
+      lines.push(`note duplicate names across libraries: ${crossNames}`);
+      lines.push(`note duplicate hex values across libraries: ${crossHex}`);
+
+      finish('LIB-PROBE');
+      return;
+    }
+
+    lines.push(`FAIL unknown probe mode "${probeMode}"`);
+    finish('PROBE');
+    return;
+  }
+
   document.title = 'preview-ready';
 
   /* `?metrics=1` appends a machine-readable geometry dump so the spacing can be
@@ -130,11 +337,14 @@
       const mount = col.querySelector('.mount');
       const probes = [
         ['panel-body', '.panel-body'],
+        ['preview', '.bc-preview'],
+        ['tabrow', '.panel-tabrow'],
         ['bc-view', '.bc-view:not(.hidden)'],
         ['stack', '.bc-stack'],
         ['wheel-wrap', '.bc-wheel-wrap'],
         ['wheel-canvas', 'canvas.bc-wheel'],
         ['readout', '.bc-wheel-readout'],
+        ['tone-row', '.bc-tone-row'],
         ['convert', '.bc-convert'],
         ['cvd-grid', '.conv-grid'],
         ['palette-head', '.panel-sub > .panel-head'],

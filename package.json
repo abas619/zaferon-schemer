@@ -20,6 +20,7 @@
     "css-check": "node build/css-coverage.js",
     "preview": "node build/preview.js",
     "preview-metrics": "node build/preview-metrics.js",
+    "panel-probe": "node build/panel-probe.js",
     "picker-test": "electron build/picker-test.js"
   },
   "keywords": [

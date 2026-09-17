@@ -50,6 +50,10 @@ const ICONS = [
   'circle-dot',
   'square',
   'align-horizontal-justify-start',
+  // tone (Base Color RGB tab: lighter / darker / vivid / muted)
+  'sun-medium',
+  'droplets',
+  'droplet-off',
   // chrome
   'sun',
   'moon',
