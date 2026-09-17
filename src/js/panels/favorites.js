@@ -94,7 +94,7 @@
           size: '100%',
           draggable: true,
           removable: true,
-          title: `${hex.toUpperCase()} — click to use, drag to reorder`,
+          title: `${hex.toUpperCase()} — click to use, drag to Mixer or reorder`,
           onPick: () => Store.setColor(hex),
           onRemove: () => {
             Store.removeFavorite(hex);

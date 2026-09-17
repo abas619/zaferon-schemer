@@ -513,6 +513,31 @@ async function run(win) {
          if (stepField) { stepField.value = '9'; stepField.dispatchEvent(new Event('change', { bubbles: true })); out.push('mixer steps ok'); }
          else out.push('mixer steps missing');
 
+         // 7b. mixer endpoints select, track Base Color, and accept colour drops
+         const mixerChips = [...document.querySelectorAll('.mixer-chip')];
+         if (mixerChips.length === 2) {
+           CS.Store.setColor('#123456');
+           mixerChips[1].click();
+           const selectedOk = mixerChips[1].classList.contains('is-selected')
+             && mixerChips[1].getAttribute('aria-pressed') === 'true'
+             && CS.Color.toHex(CS.Store.get('mixTo')) === '#123456';
+           CS.Store.setColor('#654321');
+           const tracksBase = CS.Color.toHex(CS.Store.get('mixTo')) === '#654321';
+
+           const dt = new DataTransfer();
+           dt.setData(CS.Widgets.DRAG_MIME, '#ABCDEF');
+           mixerChips[0].dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+           const dropOk = mixerChips[0].classList.contains('is-selected')
+             && CS.Color.toHex(CS.Store.get('mixFrom')) === '#abcdef';
+           const mixDragOk = !!document.querySelector('.mx-sw[draggable="true"]');
+           const favoriteDragOk = !!document.querySelector('.fav-chip[draggable="true"]');
+           out.push('mixer selection/base sync: ' + selectedOk + '/' + tracksBase);
+           out.push('mixer drop/source drag: ' + dropOk + '/' + mixDragOk + '/' + favoriteDragOk);
+           if (!selectedOk || !tracksBase || !dropOk || !mixDragOk || !favoriteDragOk) {
+             out.push('MIXER DRAG/SELECT regression');
+           }
+         } else out.push('mixer endpoint chips missing');
+
          // 8. variations intensity
          const varTab = [...document.querySelectorAll('.tab')].find(x => x.textContent.trim() === 'Variations');
          if (varTab) varTab.click();

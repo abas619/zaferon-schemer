@@ -361,15 +361,61 @@
 }
 
 .mixer-chip {
-  width: 48px;
-  height: 26px;
-  border: 1px solid var(--border-3);
+  appearance: none;
+  position: relative;
+  width: 58px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--border-2);
+  border-radius: var(--radius-sm);
   background: var(--surface);
-  cursor: default;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent), var(--shadow-1);
+  cursor: grab;
   flex: 0 0 auto;
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease),
+    transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
 }
 .mixer-chip:hover {
-  outline: 1px solid var(--focus);
+  border-color: var(--focus-line);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent), var(--shadow-2);
+  transform: translateY(-1px);
+}
+.mixer-chip:active {
+  cursor: grabbing;
+}
+.mixer-chip:focus-visible {
+  border-color: var(--focus);
+  outline: none;
+  box-shadow: var(--ring);
+}
+.mixer-chip.is-selected {
+  border-color: var(--focus);
+  box-shadow: var(--ring), inset 0 0 0 1px color-mix(in srgb, var(--surface) 55%, transparent);
+}
+.mixer-chip.is-selected::after {
+  content: '✓';
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--surface-2);
+  border-radius: 50%;
+  background: var(--focus);
+  color: var(--on-accent);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+.mixer-chip.is-drop-target {
+  border-color: var(--focus);
+  box-shadow: var(--ring);
+  transform: translateY(-1px) scale(1.06);
+}
+.mixer-chip.is-dragging {
+  opacity: 0.5;
 }
 
 .mixer-arrow {
@@ -404,7 +450,7 @@
 .mx-sw {
   aspect-ratio: 1 / 1;
   border: 1px solid rgba(0, 0, 0, 0.14);
-  cursor: default;
+  cursor: grab;
   min-height: 10px;
 }
 .mx-sw:hover {
@@ -412,6 +458,9 @@
   outline-offset: -2px;
   z-index: 2;
   position: relative;
+}
+.mx-sw.is-dragging {
+  opacity: 0.5;
 }
 
 /* --- Variations --- */

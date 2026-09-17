@@ -668,7 +668,6 @@
     const redoBtn = el('button.icon-btn', { type: 'button', title: 'Redo', html: icon('redo') });
     const viewBtns = [
       { id: 'wheel', title: 'Wheel view', svg: icon('wheel') },
-      { id: 'square', title: 'Square view', svg: icon('square') },
       { id: 'strip', title: 'Strip view', svg: icon('strip') }
     ].map((v) => {
       const b = el('button.icon-btn', { type: 'button', title: v.title, html: v.svg });
@@ -1287,8 +1286,9 @@
     const grid = el('div.mixer-grid');
     gridWrap.appendChild(grid);
 
-    const chipA = el('div.mixer-chip');
-    const chipB = el('div.mixer-chip');
+    let selectedMix = null;
+    const chipA = el('button.mixer-chip', { type: 'button', 'aria-label': 'Mixer start color', 'aria-pressed': 'false' });
+    const chipB = el('button.mixer-chip', { type: 'button', 'aria-label': 'Mixer end color', 'aria-pressed': 'false' });
     const arrow = el('div.mixer-arrow', { html: CS.Icons.svg('arrow-right', 16) });
 
     const pathSelect = W.select({
@@ -1331,6 +1331,38 @@
       stepsStepper,
       addAll
     );
+
+    function paintSelection() {
+      chipA.classList.toggle('is-selected', selectedMix === 'a');
+      chipB.classList.toggle('is-selected', selectedMix === 'b');
+      chipA.setAttribute('aria-pressed', String(selectedMix === 'a'));
+      chipB.setAttribute('aria-pressed', String(selectedMix === 'b'));
+    }
+
+    function selectMix(which, applyBase = true) {
+      selectedMix = which;
+      paintSelection();
+      if (!applyBase) return;
+      const hex = Store.hexUpper();
+      setMix(which, Store.rgb());
+      CS.App.setStatus(`Mixer ${which === 'a' ? 'start' : 'end'} color selected and set to ${hex}.`);
+    }
+
+    function acceptMixDrop(which, hex) {
+      const rgb = Color.parse(hex);
+      if (!rgb) return;
+      selectedMix = which;
+      paintSelection();
+      setMix(which, rgb);
+      CS.App.setStatus(`Dropped ${Color.toHexUpper(rgb)} into the mixer ${which === 'a' ? 'start' : 'end'} color.`);
+    }
+
+    W.dropZone(chipA, (hex) => acceptMixDrop('a', hex));
+    W.dropZone(chipB, (hex) => acceptMixDrop('b', hex));
+    const offChipAColourDrop = W.colourDropZone(chipA, (hex) => acceptMixDrop('a', hex));
+    const offChipBColourDrop = W.colourDropZone(chipB, (hex) => acceptMixDrop('b', hex));
+    W.makeDraggable(chipA, () => Color.toHex(Store.get('mixFrom')));
+    W.makeDraggable(chipB, () => Color.toHex(Store.get('mixTo')));
 
     function openPicker(which) {
       const current = which === 'a' ? Store.get('mixFrom') : Store.get('mixTo');
@@ -1375,8 +1407,18 @@
       render();
     }
 
-    on(chipA, 'click', () => openPicker('a'));
-    on(chipB, 'click', () => openPicker('b'));
+    on(chipA, 'click', () => selectMix('a'));
+    on(chipB, 'click', () => selectMix('b'));
+    on(chipA, 'contextmenu', (e) => {
+      e.preventDefault();
+      selectMix('a', false);
+      openPicker('a');
+    });
+    on(chipB, 'contextmenu', (e) => {
+      e.preventDefault();
+      selectMix('b', false);
+      openPicker('b');
+    });
 
     const ROWS = 5;
     /* Upper bound on a single mix swatch, in CSS px. */
@@ -1403,8 +1445,9 @@
       const b = Store.get('mixTo');
       chipA.style.background = Color.toHex(a);
       chipB.style.background = Color.toHex(b);
-      chipA.title = Color.toHexUpper(a);
-      chipB.title = Color.toHexUpper(b);
+      chipA.title = `${Color.toHexUpper(a)} — click to use Base Color; drop a color here; right-click to edit`;
+      chipB.title = `${Color.toHexUpper(b)} — click to use Base Color; drop a color here; right-click to edit`;
+      paintSelection();
       pathSelect.value = Store.get('mixSpace', 'lab');
       stepsStepper._stepper.set(Store.get('mixSteps', 12));
 
@@ -1426,7 +1469,7 @@
           Store.addFavorite(hex);
           CS.App.setStatus(`Added ${hex.toUpperCase()} to Favourites.`);
         });
-        W.dropZone(sw, () => {});
+        W.makeDraggable(sw, hex);
         grid.appendChild(sw);
       });
     }
@@ -1435,7 +1478,22 @@
 
     root.append(head, gridWrap);
 
-    return { root, refresh: render, onResize: () => {} };
+    return {
+      root,
+      refresh() {
+        if (selectedMix) {
+          const key = selectedMix === 'a' ? 'mixFrom' : 'mixTo';
+          const base = Store.rgb();
+          if (Color.toHex(Store.get(key)) !== Color.toHex(base)) Store.set(key, base);
+        }
+        render();
+      },
+      onResize: () => {},
+      destroy() {
+        offChipAColourDrop();
+        offChipBColourDrop();
+      }
+    };
   }
 
   /* ================================================================== *

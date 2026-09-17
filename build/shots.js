@@ -123,7 +123,7 @@ async function run(win) {
      * They only exist while the LiveSchemes tab is the active one. */
     await js(win, `document.querySelector('#doc-host .panel-tabrow .tab[data-id="live"]').click(); 'ok'`);
     await sleep(500);
-    for (const view of ['Square', 'Strip']) {
+    for (const view of ['Strip']) {
       const title = view + ' view';
       const ok = await js(win, `(() => {
         const want = ${JSON.stringify(title)};
