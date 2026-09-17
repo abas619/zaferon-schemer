@@ -100,7 +100,7 @@
       }
     });
 
-    const addBtn = el('button.add-btn', { type: 'button', text: '+', title: 'Add all extracted colours to Favourites' });
+    const addBtn = el('button.add-btn', { type: 'button', text: 'Add to Favorites', title: 'Add all extracted colors to Favorites' });
 
     const toolbar = el('div.photo-toolbar', {}, [
       openBtn,
@@ -109,7 +109,6 @@
       randomBtn,
       countStepper,
       el('div.spacer'),
-      el('span.field-label', { text: 'Add' }),
       addBtn
     ]);
 

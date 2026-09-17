@@ -579,11 +579,11 @@
     const footer = el('div.live-footer');
 
     const titleNode = el('span.live-title', { text: 'Untitled' });
-    const addBtn = el('button.add-btn', { type: 'button', text: '+', title: 'Add these colours to Favourites' });
+    const addBtn = el('button.add-btn', { type: 'button', text: 'Add to Favorites', title: 'Add these colors to Favorites' });
     const swatchRow = el('div.live-swatches');
 
     footer.append(
-      el('div.live-footer-head', {}, [titleNode, el('div.spacer'), el('span.field-label', { text: 'Add' }), addBtn]),
+      el('div.live-footer-head', {}, [titleNode, el('div.spacer'), addBtn]),
       swatchRow
     );
 
@@ -689,7 +689,7 @@
     /* How many arrows the scheme holds. The stepper is the one place the count
      * is set; addHandle() / truncation keep it in sync through paintBar(). */
     const countStepper = W.stepper({
-      label: 'Markers',
+      label: 'Markers:',
       value: 3,
       min: 1,
       max: MAX_HANDLES,
@@ -1312,7 +1312,7 @@
       }
     });
 
-    const addAll = el('button.add-btn', { type: 'button', text: '+', title: 'Add all mixes to Favourites' });
+    const addAll = el('button.add-btn', { type: 'button', text: 'Add to Favorites', title: 'Add all mixes to Favorites' });
     on(addAll, 'click', () => {
       let n = 0;
       allMixes().forEach((c) => {
