@@ -24,6 +24,11 @@ contextBridge.exposeInMainWorld('cs', {
   platform: process.platform,
   version: process.versions.electron,
 
+  /* real app name + version, for the About box and the update notice */
+  app: {
+    info: () => ipcRenderer.invoke('app:info')
+  },
+
   /* window controls */
   win: {
     minimize: () => ipcRenderer.send('win:minimize'),

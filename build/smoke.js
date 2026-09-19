@@ -185,6 +185,15 @@ ipcMain.handle('file:exportPng', async () => null);
 ipcMain.handle('file:openPath', async () => null);
 ipcMain.handle('shell:openExternal', async () => true);
 ipcMain.handle('picker:start', async () => null);
+/* The About box and the update notice read the real version through this
+ * channel. Without a stub here the invoke rejects and they fall back to their
+ * default — the harness would then be testing the fallback, not the app. */
+ipcMain.handle('app:info', () => ({
+  name: app.getName(),
+  version: app.getVersion(),
+  electron: process.versions.electron,
+  platform: process.platform
+}));
 ipcMain.on('win:minimize', () => {});
 ipcMain.on('win:maximize', () => {});
 ipcMain.on('win:close', () => {});

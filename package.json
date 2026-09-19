@@ -21,7 +21,9 @@
     "preview": "node build/preview.js",
     "preview-metrics": "node build/preview-metrics.js",
     "panel-probe": "node build/panel-probe.js",
-    "picker-test": "electron build/picker-test.js"
+    "picker-test": "electron build/picker-test.js",
+    "menu-audit": "electron build/menu-audit.js",
+    "menu-shots": "electron build/menu-audit.js --shots"
   },
   "keywords": [
     "color",

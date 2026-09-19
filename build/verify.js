@@ -1002,6 +1002,14 @@ app.whenReady().then(async () => {
   ipcMain.handle('file:openPath', async () => null);
   ipcMain.handle('shell:openExternal', async () => true);
   ipcMain.handle('picker:start', async () => null);
+  /* see build/smoke.js — the About box and the update notice read the real
+   * version through this channel, so the stub has to answer it */
+  ipcMain.handle('app:info', () => ({
+    name: app.getName(),
+    version: app.getVersion(),
+    electron: process.versions.electron,
+    platform: process.platform
+  }));
   ipcMain.on('win:minimize', () => {});
   ipcMain.on('win:maximize', () => {});
   ipcMain.on('win:close', () => {});

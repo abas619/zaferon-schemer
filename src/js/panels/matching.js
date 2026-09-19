@@ -1664,11 +1664,7 @@
             { id: 'variations', label: 'Variations' }
           ],
           activeTab,
-          (id) => {
-            activeTab = id;
-            Store.set('matchingTab', id);
-            showTab();
-          }
+          (id) => showTab(id)
         )
       );
 
@@ -1680,7 +1676,19 @@
       }
     }
 
-    function showTab() {
+    /* The one path for every tab change.
+     *
+     * `matchingTab` used to be written by the tab-strip callback alone, so the
+     * exported showTab() — which is what Tools ▸ Color Wheel / Color Mixer /
+     * Variations, Ctrl+4 / Ctrl+7 / Ctrl+8 and New all call — moved the view
+     * but left the preference behind. Three things read that preference: the
+     * tick beside those menu items, the tab restored on the next launch, and
+     * the `checked:` comparison itself. So switching from the menu showed the
+     * right view with the wrong tick, and the app reopened on the old tab.
+     * Persist here and every caller stays in sync for free. */
+    function showTab(id) {
+      if (id && views[id]) activeTab = id;
+      if (Store.get('matchingTab') !== activeTab) Store.set('matchingTab', activeTab);
       Object.keys(views).forEach((k) => views[k].root.classList.toggle('hidden', k !== activeTab));
       renderTabs();
       requestAnimationFrame(() => {
@@ -1723,10 +1731,7 @@
       root: panel.root,
       refresh,
       refreshAll,
-      showTab(id) {
-        activeTab = id;
-        showTab();
-      },
+      showTab,
       destroy() {
         offColor();
         offState();

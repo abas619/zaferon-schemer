@@ -286,6 +286,8 @@
           row.appendChild(wrap);
 
           const open = () => {
+            /* A greyed-out row is inert — it must not open either. */
+            if (item.disabled) return;
             closeSubmenusExcept(row);
             wrap.classList.add('is-open');
             row.classList.add('is-subopen');
@@ -305,6 +307,12 @@
           });
           on(row, 'click', (e) => {
             e.stopPropagation();
+            /* A disabled row must not run its action. It used to: `is-disabled`
+             * was only a class, so "Undo" with an empty history still called
+             * goBack(), and the "Open Recent ▸ (nothing yet)" placeholder — an
+             * item with no action at all — was a live click target that threw.
+             * The menu also stays open, because nothing happened. */
+            if (item.disabled) return;
             closeMenu();
             if (item.action) item.action();
           });

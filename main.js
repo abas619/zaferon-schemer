@@ -245,6 +245,16 @@ ipcMain.handle('clipboard:writeText', (_e, text) => {
 
 ipcMain.handle('clipboard:readText', () => clipboard.readText());
 
+/* The About box and the update notice both name a version. Two menus
+ * hand-writing "1.0.0" is a drift waiting to happen, so they read the real one
+ * from here. `app.getVersion()` is package.json's `version`. */
+ipcMain.handle('app:info', () => ({
+  name: app.getName(),
+  version: app.getVersion(),
+  electron: process.versions.electron,
+  platform: process.platform
+}));
+
 ipcMain.handle('shell:openExternal', async (_e, url) => {
   if (!/^https?:\/\//i.test(String(url || ''))) return false;
   await shell.openExternal(url);

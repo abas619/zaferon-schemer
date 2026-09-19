@@ -443,8 +443,10 @@
         { label: 'Import Wizard…', action: importPalette },
         { label: 'Export Wizard…', action: () => exportPalette() },
         { separator: true },
-        { label: 'Print…', accel: 'Ctrl+P', action: quickPreview },
-        { separator: true },
+        /* "Print… Ctrl+P" used to sit here and opened the QuickPreview dialog,
+         * which has no print button — the label promised something the app
+         * cannot do, and it claimed the same Ctrl+P as Tools ▸ QuickPreview.
+         * QuickPreview is one feature, so it lives in one menu. */
         { label: 'Exit', action: () => window.cs.win.close() }
       ]
     },
@@ -488,12 +490,26 @@
           }))
         },
         {
-          label: 'Primary Colors',
-          submenu: [
-            { label: 'Red / Green / Blue', checked: true, action: () => {} },
-            { label: 'Cyan / Magenta / Yellow', action: () => setStatus('CMYK primaries shown in the Base Color panel.') },
-            { label: 'Hue / Saturation / Value', action: () => setStatus('HSV primaries shown in the Base Color panel.') }
-          ]
+          /* Was "Primary Colors" — a leftover from ColorSchemer Studio whose
+           * three rows claimed to change what the Base Color panel shows. Two
+           * of them only wrote a status line, and the third was
+           * `action: () => {}`, so none of the three did anything. Nothing in
+           * the app ever read a "primaries" preference. This replaces it with
+           * the harmony picker the app actually has: the same `scheme` the
+           * Matching Colors wheel reads, so the tick here and the wheel's
+           * dropdown always agree. */
+          label: 'Color Scheme',
+          submenu: Color.SCHEMES.map((s) => ({
+            label: s.label,
+            checked: Store.get('scheme', 'complementary') === s.id,
+            action: () => {
+              Store.set('scheme', s.id);
+              /* `set` only emits 'state', which the wheel does not listen for,
+               * so the tick would change while the wheel stood still. */
+              refreshAll();
+              setStatus(`Scheme: ${s.label}`);
+            }
+          }))
         },
         {
           label: 'Color Blindness Simulation',
@@ -539,7 +555,17 @@
         { label: 'Contrast Analyzer', accel: 'Ctrl+A', action: contrastAnalyzer },
         { label: 'QuickPreview', accel: 'Ctrl+P', action: quickPreview },
         { separator: true },
-        { label: 'Show Color Palette', checked: Store.get('showPalette', true) !== false, action: () => togglePalette() },
+        {
+          /* The palette strip is unconditionally hidden outside Matching Colors
+           * (`updatePaletteVisibility`), so in any other workspace this toggle
+           * flipped a preference and nothing on screen moved — the item read as
+           * broken. Disable it where it cannot act; the status-bar palette
+           * button stays enabled and says why. */
+          label: 'Show Color Palette',
+          checked: Store.get('showPalette', true) !== false,
+          disabled: activeDoc !== 'matching',
+          action: () => togglePalette()
+        },
         { label: 'Show Base Color Panel', checked: Store.get('showBaseColor', true) !== false, action: () => togglePanel('baseColor') },
         { label: 'Show Favorite Colors Panel', checked: Store.get('showFavorites', true) !== false, action: () => togglePanel('favorites') },
         { separator: true },
@@ -559,11 +585,15 @@
       items: () => [
         { label: 'Zaferon Schemer Help', accel: 'F1', action: helpDialog },
         { separator: true },
-        { label: 'Website', action: () => window.cs.shell.openExternal('https://www.colorschemer.com/') },
-        { label: 'Gallery', action: () => openDocument('gallery') },
-        { label: 'Forums', action: () => openDocument('browser') },
+        /* Every link in this menu used to point somewhere the app is not.
+         * "Website" opened colorschemer.com — a different product — and
+         * "Gallery" / "Forums" were wired to in-app documents (GalleryBrowser
+         * and SchemeBrowser), so neither was a gallery or a forum and both
+         * duplicated the Tools menu. These go to the code's actual home. */
+        { label: 'Project Page', action: () => openExternal(PROJECT_URL) },
+        { label: 'Report an Issue…', action: () => openExternal(`${PROJECT_URL}/issues`) },
         { separator: true },
-        { label: 'Check for Updates…', action: () => setStatus('You are running the latest version (1.0.0).') },
+        { label: 'Check for Updates…', action: checkForUpdates },
         { separator: true },
         { label: 'About Zaferon Schemer…', action: aboutDialog }
       ]
@@ -689,7 +719,59 @@
    * Dialogs
    * ================================================================== */
 
-  function aboutDialog() {
+  /* One place to change the project's home. There is no separate marketing
+   * site for this build, and the Help menu used to send people to
+   * colorschemer.com — someone else's product. */
+  const PROJECT_URL = 'https://github.com/abas619/saffron-scheme';
+
+  function openExternal(url) {
+    window.cs.shell.openExternal(url);
+    setStatus(`Opening ${url}`);
+  }
+
+  /** Cached because two menus ask for it and it cannot change while running. */
+  let appInfoPromise = null;
+  function appInfo() {
+    if (!appInfoPromise) {
+      appInfoPromise = window.cs.app
+        ? window.cs.app.info().catch(() => ({}))
+        : Promise.resolve({});
+    }
+    return appInfoPromise;
+  }
+
+  /* "Check for Updates…" used to print "You are running the latest version
+   * (1.0.0)." without checking anything — a hard-coded claim, and a version
+   * string that would drift the moment package.json moved. This build ships no
+   * update service, so the honest thing is to say so and hand over the link. */
+  function checkForUpdates() {
+    appInfo().then((info) => {
+      const version = info.version || '—';
+      const content = el('div.about-body', {}, [
+        el('p', { text: `Zaferon Schemer ${version}` }),
+        el('p', {
+          text: 'This build has no update service, so it cannot look for a newer release on its own. Open the project page to see whether one exists.'
+        })
+      ]);
+      W.dialog({
+        title: 'Check for Updates',
+        width: 440,
+        content,
+        buttons: [
+          { label: 'Close', value: null },
+          { label: 'Open Project Page', value: 'open', primary: true }
+        ],
+        onClose: (v) => {
+          if (v === 'open') openExternal(PROJECT_URL);
+        }
+      });
+    });
+  }
+
+  async function aboutDialog() {
+    /* The version is read, not typed — it used to be the literal "Version
+     * 1.0.0" here and another literal in the update notice. */
+    const info = await appInfo();
     const content = el('div.about');
     content.append(
       el('div.about-head', {}, [
@@ -699,7 +781,7 @@
         })(),
         el('div', {}, [
           el('div.about-title', { text: 'Zaferon Schemer' }),
-          el('div.about-version', { text: 'Version 1.0.0' }),
+          el('div.about-version', { text: `Version ${info.version || '1.0.0'}` }),
           el('div.about-sub', { text: 'Colour management for designers and developers.' })
         ])
       ]),
@@ -707,7 +789,7 @@
         el('p', { text: 'Build colour harmonies, mix and vary palettes, pull colours out of photographs, and sample any pixel on screen with the eyedropper.' }),
         el('div.about-grid', {}, [
           el('span', { text: 'Electron' }),
-          el('span', { text: window.cs.version }),
+          el('span', { text: info.electron || window.cs.version }),
           el('span', { text: 'Chromium' }),
           el('span', { text: navigator.userAgent.match(/Chrome\/([\d.]+)/)?.[1] || '—' }),
           el('span', { text: 'Platform' }),
@@ -1601,7 +1683,18 @@
       title: 'Toggle the Color Palette panel',
       html: PALETTE_ICON
     });
-    on(paletteBtn, 'click', () => togglePalette());
+    on(paletteBtn, 'click', () => {
+      /* The palette strip only exists in Matching Colors, so from any other
+       * workspace this button used to do nothing at all. Take the user where
+       * the palette can appear, and say so — a control that never responds is
+       * worse than one that explains itself. */
+      if (activeDoc !== 'matching') {
+        openDocument('matching');
+        setStatus('The Color Palette lives in Matching Colors.');
+        return;
+      }
+      togglePalette();
+    });
 
     leftWrap.append(paletteBtn, left);
   }
@@ -1840,6 +1933,11 @@
   }
 
   CS.App = {
+    /* The menu table itself, exposed so `build/menu-audit.js` can walk every
+     * item and prove it resolves to something that actually runs. Menus are
+     * the one part of the app a screenshot cannot check: an item that opens a
+     * dialog and an item whose action is `() => {}` look identical. */
+    menus: MENUS,
     openDocument,
     closeDocument,
     togglePanel,

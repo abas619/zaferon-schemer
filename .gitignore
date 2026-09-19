@@ -15,6 +15,10 @@ shots/
 *.tmp
 *.temp
 
+# Generated harness reports (re-created by every run)
+build/menu-audit.json
+build/*.out.txt
+
 # Logs
 logs/
 *.log
