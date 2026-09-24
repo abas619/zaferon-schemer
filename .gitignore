@@ -44,3 +44,7 @@ Desktop.ini
 
 # Local AI/workspace metadata
 .workbuddy-ai/
+
+# Local project documentation (handoff notes, internals, known bugs).
+# Not shipped with the app — see doc/handsoff.md.
+doc/

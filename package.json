@@ -23,7 +23,9 @@
     "panel-probe": "node build/panel-probe.js",
     "picker-test": "electron build/picker-test.js",
     "menu-audit": "electron build/menu-audit.js",
-    "menu-shots": "electron build/menu-audit.js --shots"
+    "menu-shots": "electron build/menu-audit.js --shots",
+    "support-check": "electron build/support-check.js",
+    "donate-check": "node build/donate-check.js"
   },
   "keywords": [
     "color",
@@ -36,5 +38,8 @@
   "devDependencies": {
     "electron": "^33.2.0",
     "lucide-static": "^1.46.0"
+  },
+  "dependencies": {
+    "qrcode-generator": "^2.0.4"
   }
 }

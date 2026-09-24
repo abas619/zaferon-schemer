@@ -595,6 +595,10 @@
         { separator: true },
         { label: 'Check for Updates…', action: checkForUpdates },
         { separator: true },
+        /* Reads its rows from CS.Donate at open time, so the QR is always
+         * derived from the address rather than stored alongside it. */
+        { label: 'Support Zaferon Schemer…', action: () => CS.Support.open() },
+        { separator: true },
         { label: 'About Zaferon Schemer…', action: aboutDialog }
       ]
     }

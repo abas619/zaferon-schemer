@@ -626,3 +626,112 @@ body.is-colour-dragging {
   white-space: nowrap;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
+
+/* ------------------------------------------------------------------ *
+ * Support dialog
+ *
+ * The QR must stay black-on-white in both themes or it will not scan, so
+ * the paper and ink colours come from --qr-paper / --qr-ink, which are
+ * declared identically in :root and [data-theme='dark'] (same precedent as
+ * --ring-contrast). Everything else here reads plain tokens.
+ * ------------------------------------------------------------------ */
+
+.support-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.support-large {
+  align-items: center;
+  text-align: center;
+}
+.support-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.support-col {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.support-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.support-net {
+  font-size: 10.5px;
+  color: var(--text-mute);
+}
+.support-addr {
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+.support-acts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+/* A button, so it is focusable and Space activates it, but it must not look
+ * like one — it is the paper the QR is printed on. */
+.support-qr-card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: var(--sp-1);
+  background: var(--qr-paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.support-qr-card:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.support-qr {
+  display: block;
+  width: 84px;
+  height: 84px;
+}
+.support-qr-big {
+  display: block;
+  width: 240px;
+  height: 240px;
+}
+.support-qr-cap {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--warn);
+  text-align: center;
+  max-width: 84px;
+  line-height: 1.3;
+}
+
+.support-note {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-mute);
+}
+.support-warn {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--warn);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+}
