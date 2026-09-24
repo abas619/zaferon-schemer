@@ -726,7 +726,7 @@
   /* One place to change the project's home. There is no separate marketing
    * site for this build, and the Help menu used to send people to
    * colorschemer.com — someone else's product. */
-  const PROJECT_URL = 'https://github.com/abas619/saffron-scheme';
+  const PROJECT_URL = 'https://github.com/abas619/zaferon-schemer';
 
   function openExternal(url) {
     window.cs.shell.openExternal(url);

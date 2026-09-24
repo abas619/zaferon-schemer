@@ -160,8 +160,7 @@
     on(copyBtn, 'click', () => copy(w.address));
     row.appendChild(copyBtn);
 
-    /* Only offered when the entry actually carries an explorer URL. The seeded
-     * demo wallet has explorer: '', so this stays hidden until it is filled in. */
+    /* Only offered when the entry actually carries an explorer URL. */
     if (w.explorer) {
       const url = String(w.explorer).replace('{addr}', encodeURIComponent(w.address));
       const viewBtn = el('button.btn.btn-mini', { type: 'button', text: 'View' });

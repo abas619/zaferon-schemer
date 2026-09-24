@@ -42,6 +42,9 @@ pnpm-debug.log*
 Thumbs.db
 Desktop.ini
 
+# Written by the display driver next to the app when a GPU process runs here.
+NVIDIA Corporation/
+
 # Local AI/workspace metadata
 .workbuddy-ai/
 

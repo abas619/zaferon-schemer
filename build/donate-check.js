@@ -12,8 +12,9 @@
  *
  *   FATAL (exit 1) — a wallet with no address, a wallet still carrying the
  *                    PLACEHOLDER marker, a wallet flagged `demo: true`, a TRC20
- *                    address that fails base58check, or an explorer URL that
- *                    does not contain its own address.
+ *                    address that fails base58check, an explorer URL that does
+ *                    not contain its own address, or a README.md that is missing
+ *                    or does not print every published address verbatim.
  *   WARN  (exit 0) — a link carrying PLACEHOLDER. The rial channel is pending
  *                    by design and `isReady()` already hides it from the UI.
  *
@@ -30,6 +31,7 @@ const crypto = require('crypto');
 
 const ROOT = path.join(__dirname, '..');
 const DONATE = path.join(ROOT, 'src', 'js', 'data', 'donate.js');
+const README = path.join(ROOT, 'README.md');
 const MARKER = 'PLACEHOLDER';
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
@@ -95,6 +97,7 @@ function loadDonate() {
 const fatal = [];
 const warn = [];
 const rows = [];
+let readmeState = 'not checked';
 
 function pad(s, n) {
   s = String(s);
@@ -134,6 +137,33 @@ function run() {
     problems.forEach((p) => fatal.push(`wallet "${w.id}": ${p}`));
   });
 
+  /* ---------- README sync ---------- */
+
+  /* The address a stranger copies off GitHub and the address the app shows are
+   * two different files. Two copies means one can drift, and a drifted donation
+   * address sends money to nobody — so the README is checked against the data,
+   * never against anyone's memory of what it says. */
+  const published = (D.readyWallets() || []).map((w) => String(w.address));
+  let readme = null;
+  try {
+    readme = fs.readFileSync(README, 'utf8');
+  } catch (err) {
+    fatal.push('README.md is missing from the repo root — every wallet address must be published there');
+  }
+  if (readme) {
+    published.forEach((addr) => {
+      if (readme.indexOf(addr) === -1) {
+        fatal.push(`README.md does not carry the address "${addr}" verbatim`);
+      }
+    });
+  }
+  readmeState =
+    !readme
+      ? 'MISSING'
+      : published.length
+        ? `ok, ${published.length} address(es) matched`
+        : 'nothing to publish';
+
   (D.links || []).forEach((l) => {
     const url = String(l.url || '');
     if (!url) fatal.push(`link "${l.id}": empty url`);
@@ -161,6 +191,8 @@ function run() {
         (problems.length ? 'FATAL' : 'ok')
     );
   });
+
+  console.log(`README.md   : ${readmeState}`);
 
   warn.forEach((m) => console.log(`\n  WARN   ${m}`));
   fatal.forEach((m) => console.log(`\n  FATAL  ${m}`));
