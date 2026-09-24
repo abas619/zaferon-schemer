@@ -1,7 +1,7 @@
 # Zaferon Schemer
 
 A desktop colour studio: a harmony wheel, live schemes, a mixer, variations, photo colour extraction and a
-full-screen eyedropper — **fully offline**. No account, no telemetry, no network access of any kind.
+full-screen eyedropper. **Your work never leaves the machine** — no account, no telemetry, no cloud storage.
 
 Zaferon (زعفران) is Persian for saffron — the colour the app opens on.
 
@@ -33,9 +33,13 @@ Zaferon (زعفران) is Persian for saffron — the colour the app opens on.
 - **Named-colour libraries** — HTML, Material, Classic, Utility and Retro, searchable.
 - **Export and import** — Adobe Swatch Exchange (.ase), palette files, and whole workspaces.
 - **Light and dark themes**, a persistent workspace, and undo/redo of colour history.
-- **Nothing phones home.** The renderer runs under a `script-src 'self' file:` CSP and issues no requests; the
-  QR codes in the Support dialog are generated locally. `Help ▸ Check for Updates…` therefore points at the
-  [releases page](https://github.com/abas619/zaferon-schemer/releases) instead of pretending to poll a server.
+- **Self-updating** — an installed build checks GitHub Releases about ten seconds after launch and offers a
+  banner: *Download* fetches the update, *Install & Restart* applies it. Nothing is downloaded unless you ask,
+  and the check only exists in a packaged build — running from source makes no requests at all.
+- **No telemetry.** The renderer cannot reach the network even if it wanted to: its CSP is
+  `default-src 'self' file:`, which covers `connect-src` as well as scripts, and it has no Node access at all. QR
+  codes are generated locally. The one outbound call in the app is that release check, made from the main
+  process.
 
 ## Download
 
@@ -54,6 +58,11 @@ npm start
 Electron 33 and plain JavaScript — there is no bundler, no framework and no build step for the renderer, so
 editing a file in `src/` and reloading the window is the whole development loop. `npm run` lists the test
 harnesses that cover the parts a screenshot cannot show.
+
+To produce your own installer: `npm run dist`, which writes `dist/` via electron-builder. Pushing a `v*` tag runs
+the same build on GitHub's Windows runner and attaches the result to a Release
+([`.github/workflows/release.yml`](.github/workflows/release.yml)) — that is where the downloadable builds, and
+the `latest.yml` the updater reads, come from.
 
 ## Support the project
 

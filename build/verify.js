@@ -1010,6 +1010,11 @@ app.whenReady().then(async () => {
     electron: process.versions.electron,
     platform: process.platform
   }));
+  /* see build/smoke.js — the updater answers as it does unpackaged */
+  ipcMain.handle('update:check', async () => ({ packaged: false }));
+  ipcMain.handle('update:download', async () => ({ packaged: false }));
+  ipcMain.handle('update:install', async () => ({ packaged: false }));
+  ipcMain.handle('update:status', () => ({ packaged: false, state: { type: 'idle' } }));
   ipcMain.on('win:minimize', () => {});
   ipcMain.on('win:maximize', () => {});
   ipcMain.on('win:close', () => {});

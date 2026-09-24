@@ -17,6 +17,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { createPickerOverlay } = require('./picker-overlay');
+const updater = require('./updater');
 
 const ROOT = __dirname;
 const SRC = path.join(ROOT, 'src');
@@ -86,6 +87,11 @@ function createMainWindow() {
   mainWindow.loadFile(path.join(SRC, 'index.html'));
 
   mainWindow.once('ready-to-show', () => mainWindow.show());
+
+  /* Handed the window rather than waiting for ready-to-show: the updater only
+   * needs a webContents to talk to, and its own first check is delayed long
+   * enough that it cannot interrupt startup. */
+  updater.init(mainWindow);
 
   const emitState = () => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
@@ -260,6 +266,19 @@ ipcMain.handle('shell:openExternal', async (_e, url) => {
   await shell.openExternal(url);
   return true;
 });
+
+/* ------------------------------------------------------------------ *
+ *  Auto-update (see updater.js — main process only, packaged builds only)
+ *
+ *  Every one of these is a no-op that reports `{ packaged: false }` when the
+ *  app is running from source, so the renderer never has to guess whether the
+ *  feature is live; it reads the answer out of the reply.
+ * ------------------------------------------------------------------ */
+
+ipcMain.handle('update:check', () => updater.check());
+ipcMain.handle('update:download', () => updater.download());
+ipcMain.handle('update:install', () => updater.install());
+ipcMain.handle('update:status', () => updater.status());
 
 /* ================================================================== *
  *  Screen colour picker (eyedropper)

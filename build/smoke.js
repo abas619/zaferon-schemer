@@ -194,6 +194,13 @@ ipcMain.handle('app:info', () => ({
   electron: process.versions.electron,
   platform: process.platform
 }));
+/* The updater answers as it does in an unpackaged build — which is exactly what
+ * a harness is. Without these the Help ▸ Check for Updates… invoke rejects with
+ * "No handler registered", and the harness reports its own gap as an app defect. */
+ipcMain.handle('update:check', async () => ({ packaged: false }));
+ipcMain.handle('update:download', async () => ({ packaged: false }));
+ipcMain.handle('update:install', async () => ({ packaged: false }));
+ipcMain.handle('update:status', () => ({ packaged: false, state: { type: 'idle' } }));
 ipcMain.on('win:minimize', () => {});
 ipcMain.on('win:maximize', () => {});
 ipcMain.on('win:close', () => {});

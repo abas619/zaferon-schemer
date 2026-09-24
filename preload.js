@@ -62,6 +62,20 @@ contextBridge.exposeInMainWorld('cs', {
   /* screen colour picker (eyedropper) */
   picker: {
     start: () => ipcRenderer.invoke('picker:start')
+  },
+
+  /* auto-update — the request itself happens in the main process (updater.js);
+   * this is only a doorbell in both directions. */
+  update: {
+    check: () => ipcRenderer.invoke('update:check'),
+    download: () => ipcRenderer.invoke('update:download'),
+    install: () => ipcRenderer.invoke('update:install'),
+    status: () => ipcRenderer.invoke('update:status'),
+    onStatus: (cb) => {
+      const h = (_e, s) => cb(s);
+      ipcRenderer.on('update:status', h);
+      return () => ipcRenderer.removeListener('update:status', h);
+    }
   }
 });
 

@@ -735,3 +735,53 @@ body.is-colour-dragging {
   border-radius: var(--radius-sm);
   padding: 6px 8px;
 }
+
+/* ------------------------------------------------------------------ *
+ *  Update banner + dialog line  (src/js/ui/update.js)
+ *
+ *  The banner sits between the titlebar and the menu bar — never over the
+ *  titlebar, which owns the -webkit-app-region: drag strip.
+ * ------------------------------------------------------------------ */
+
+.update-banner {
+  display: none;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--accent-line);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.update-status {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.update-progress {
+  flex: 1 1 auto;
+  height: 4px;
+  background: var(--surface-3);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+.update-acts {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--sp-1);
+  margin-left: auto;
+}
+
+.update-dialog-line {
+  color: var(--text-dim);
+}

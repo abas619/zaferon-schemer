@@ -79,6 +79,14 @@ ipcMain.handle('app:info', () => ({
   electron: process.versions.electron,
   platform: process.platform
 }));
+/* The audit INVOKES Help ▸ Check for Updates…, so the updater channels have to
+ * answer. `{ packaged: false }` is the honest reply for a harness — it is what
+ * the real main process says when run from source, and it is the branch that
+ * shows the "no update service" dialog rather than a network call. */
+ipcMain.handle('update:check', async () => ({ packaged: false }));
+ipcMain.handle('update:download', async () => ({ packaged: false }));
+ipcMain.handle('update:install', async () => ({ packaged: false }));
+ipcMain.handle('update:status', () => ({ packaged: false, state: { type: 'idle' } }));
 ipcMain.handle('file:save', async () => path.join(os.tmpdir(), 'menu-audit-save.json'));
 ipcMain.handle('file:openImage', async () => null);
 ipcMain.handle('file:openText', async () => null);

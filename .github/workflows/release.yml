@@ -1,0 +1,47 @@
+name: Release
+
+# Tag a version and the build publishes itself: `git tag v1.0.2 && git push origin v1.0.2`.
+# electron-updater reads the `latest.yml` this workflow uploads, so a tag is the
+# only thing between a merged main branch and an update reaching installed apps.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  # GITHUB_TOKEN is read-only by default in Actions. Without this, electron-builder
+  # authenticates, fails to create the release and the run dies with a 403 — after
+  # a full Windows build, which is the most expensive way to discover a typo.
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The node-only gates, before anything is packaged. Cheap here, and they are
+      # the ones that catch the unrecoverable outcome: a release whose donation
+      # address is still demo, or whose update wiring no longer lines up.
+      - name: Release gates
+        run: |
+          npm run update-check
+          npm run donate-check
+          npm run store-test
+          npm run css-check
+
+      - name: Build and publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run dist:publish

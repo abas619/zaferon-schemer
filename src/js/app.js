@@ -745,31 +745,14 @@
   }
 
   /* "Check for Updates…" used to print "You are running the latest version
-   * (1.0.0)." without checking anything — a hard-coded claim, and a version
-   * string that would drift the moment package.json moved. This build ships no
-   * update service, so the honest thing is to say so and hand over the link. */
+   * (1.0.0)." without checking anything. It now asks the real question — but the
+   * answer, the banner and the dev-build notice all live in `CS.Update`, because
+   * that is the module that owns the update states. All this does is hand over
+   * the project URL so the dialog's "Open Project Page" reads it from here
+   * instead of keeping a second copy of it. */
   function checkForUpdates() {
-    appInfo().then((info) => {
-      const version = info.version || '—';
-      const content = el('div.about-body', {}, [
-        el('p', { text: `Zaferon Schemer ${version}` }),
-        el('p', {
-          text: 'This build has no update service, so it cannot look for a newer release on its own. Open the project page to see whether one exists.'
-        })
-      ]);
-      W.dialog({
-        title: 'Check for Updates',
-        width: 440,
-        content,
-        buttons: [
-          { label: 'Close', value: null },
-          { label: 'Open Project Page', value: 'open', primary: true }
-        ],
-        onClose: (v) => {
-          if (v === 'open') openExternal(PROJECT_URL);
-        }
-      });
-    });
+    if (!CS.Update) return;
+    CS.Update.check({ projectUrl: PROJECT_URL });
   }
 
   async function aboutDialog() {
@@ -1892,6 +1875,9 @@
     buildMenubar();
     buildToolbar();
     buildStatusBar();
+    /* Subscribes to `update:status`; a no-op when there is no bridge (the
+     * headless preview), so it can never blank the workspace from here. */
+    if (CS.Update) CS.Update.init();
     buildDocks();
     buildSplitters();
     bindShortcuts();

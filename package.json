@@ -1,10 +1,10 @@
 {
   "name": "zaferon-schemer",
   "productName": "Zaferon Schemer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Zaferon Schemer — a desktop color studio: matching colors, live schemes, mixer, variations, photo color extraction and a full-screen eyedropper.",
   "main": "main.js",
-  "author": "",
+  "author": "Abbas (abas619)",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -25,7 +25,41 @@
     "menu-audit": "electron build/menu-audit.js",
     "menu-shots": "electron build/menu-audit.js --shots",
     "support-check": "electron build/support-check.js",
-    "donate-check": "node build/donate-check.js"
+    "donate-check": "node build/donate-check.js",
+    "update-check": "node build/update-check.js",
+    "update-shots": "electron build/update-shots.js",
+    "dist": "electron-builder --win --publish never",
+    "dist:publish": "electron-builder --win --publish always"
+  },
+  "build": {
+    "appId": "com.zaferon.schemer",
+    "productName": "Zaferon Schemer",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "picker-overlay.js",
+      "updater.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "abas619",
+      "repo": "zaferon-schemer"
+    }
   },
   "keywords": [
     "color",
@@ -37,9 +71,11 @@
   ],
   "devDependencies": {
     "electron": "^33.2.0",
-    "lucide-static": "^1.46.0"
+    "electron-builder": "^24.0.0",
+    "lucide-static": "^1.46.0",
+    "qrcode-generator": "^2.0.4"
   },
   "dependencies": {
-    "qrcode-generator": "^2.0.4"
+    "electron-updater": "^6.0.0"
   }
 }
