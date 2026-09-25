@@ -82,3 +82,44 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist:publish -- ${{ matrix.args }}
+
+  # electron-builder's GitHub publisher creates the release as a **draft** and never
+  # publishes it (gitHubPublisher.js: `this.releaseType = options.draft === false ?
+  # "release" : "draft"`, with no other writer). A green run therefore produces a
+  # release nobody can see: drafts are excluded from `releases/latest`, which is
+  # exactly what electron-updater polls, and the download links 404. So the release is
+  # published here, once, after all three runners have finished — publishing per-job
+  # would open the release as soon as the fastest platform landed and leave users
+  # downloading a half-finished one.
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          assets="$(gh release view "$tag" --json assets --jq '.assets[] | select(.name | endswith(".blockmap") | not) | .name' | sed 's/^/- /')"
+          body="$(cat <<EOF
+          Built by CI from the commit tagged \`$tag\`.
+
+          $assets
+
+          ## Read this first
+
+          - **macOS:** the build is unsigned and un-notarised — there is no Developer ID
+            certificate in this repo's secrets yet. If Gatekeeper refuses to open it, go to
+            System Settings ▸ Privacy & Security ▸ **Open Anyway**. macOS 15 removed the
+            right-click ▸ Open override, so use the settings pane.
+          - **Windows portable (\`-Portable-\`):** a single exe with no installed copy, so it
+            **cannot self-update**. Use the \`-Setup-\` installer for automatic updates.
+          - **Linux AppImage** needs \`libfuse2\` on recent distros, and it is also the only
+            Linux format that self-updates (deb and rpm have no updater here).
+
+          Installed Windows builds, AppImage files and macOS builds check this release for
+          updates automatically.
+          EOF
+          )"
+          gh release edit "$tag" --draft=false --latest --title "$tag" --notes "$body"
+          gh release view "$tag" --json isDraft,assets --jq '"draft: \(.isDraft)  assets: \(.assets | length)"'

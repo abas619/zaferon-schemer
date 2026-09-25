@@ -279,6 +279,17 @@ check(/needs:\s*gates/.test(wf), 'the builds wait for the gates (a broken addres
 check(/fail-fast:\s*false/.test(wf), 'fail-fast is off — one platform dying must not cancel the other two');
 check(/rpmbuild|apt-get install -y rpm/.test(wf), 'the linux job installs rpmbuild (the rpm target shells out to it)');
 
+/* electron-builder leaves the release as a *draft*, and a draft is invisible to both
+ * of the paths that matter: GitHub hides it from `releases/latest` and from the
+ * download URLs, and `releases/latest` is precisely what electron-updater polls. So
+ * a run with three green platform jobs can still ship nothing. The publish step here
+ * is the only thing standing between "CI passed" and "nobody can download it" —
+ * which is how v1.0.0 shipped the first time. */
+console.log('\nthe draft release actually gets published');
+check(/--draft=false/.test(wf), 'a job flips the draft to a real release (electron-builder never does)');
+check(/needs:\s*release/.test(wf), 'it waits for all three platform jobs, not just the fastest one');
+check(/--latest/.test(wf), 'it marks the release latest, so the updater channel resolves it');
+
 /* ------------------------------------------------------------------ *
  * 7. One repo name, four places
  * ------------------------------------------------------------------ */
