@@ -42,6 +42,14 @@ let last = { type: 'idle' };
 
 const isPackaged = () => !!app.isPackaged;
 
+/* electron-builder's portable launcher sets this before the app starts. A
+ * portable build has nothing to update in place — and `quitAndInstall()` on one
+ * does not "replace the exe", it runs the NSIS installer, which silently
+ * performs a normal per-user install and relaunches *that*. So the portable exe
+ * is told about the new release and left alone, rather than offered a button
+ * that would do something its user never asked for. */
+const isPortable = () => process.platform === 'win32' && !!process.env.PORTABLE_EXECUTABLE_DIR;
+
 function send(payload) {
   last = payload;
   if (!win || win.isDestroyed() || win.webContents.isDestroyed()) return;
@@ -105,6 +113,11 @@ function init(browserWindow) {
     return;
   }
 
+  if (isPortable()) {
+    logger.info('portable build — no automatic updates');
+    return;
+  }
+
   /* A short delay: the window is still painting its first frame, and an update
    * dialog stealing focus at launch is worse than one ten seconds later. */
   setTimeout(() => {
@@ -122,15 +135,17 @@ function flattenNotes(notes) {
   return '';
 }
 
-/** @returns {Promise<{packaged: boolean}>} resolves as soon as the outcome is known. */
+/** @returns {Promise<{packaged: boolean, portable?: boolean}>} resolves as soon as the outcome is known. */
 async function check() {
   if (!isPackaged()) return { packaged: false };
+  if (isPortable()) return { packaged: true, portable: true };
   await autoUpdater.checkForUpdates();
   return { packaged: true };
 }
 
 async function download() {
   if (!isPackaged()) return { packaged: false };
+  if (isPortable()) return { packaged: true, portable: true };
   await autoUpdater.downloadUpdate();
   return { packaged: true };
 }
@@ -138,13 +153,14 @@ async function download() {
 /** Install and relaunch. Only meaningful after `update-downloaded`. */
 function install() {
   if (!isPackaged()) return { packaged: false };
+  if (isPortable()) return { packaged: true, portable: true };
   autoUpdater.quitAndInstall(false, true);
   return { packaged: true };
 }
 
 /** The renderer can ask what already happened (e.g. after a reload). */
 function status() {
-  return { packaged: isPackaged(), state: last };
+  return { packaged: isPackaged(), portable: isPortable(), state: last };
 }
 
 module.exports = { init, check, download, install, status };

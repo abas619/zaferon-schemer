@@ -50,7 +50,7 @@ const REPORT = path.join(__dirname, 'firstrun-report.txt');
 
 function say(line) {
   trace.push(line);
-  say(line + '\n');
+  console.log(line);
 }
 
 function writeReport() {
@@ -121,9 +121,15 @@ async function run() {
 
   /* ---- 2. legacy state migrates, minus the colour ------------------- */
   say('\nlegacy state present (simulating an upgrade)\n');
+  /* The new key has to go as well: `load()` reads the legacy key only when
+   * `readKey(STORAGE_KEY)` comes back empty (store.js:127), and step 1 already
+   * persisted one. Seeding legacy on top of it tests nothing — the app correctly
+   * prefers its own newer state. Deleting it is what makes this a first launch
+   * under the new name. */
   await js(
     win,
     `(() => {
+       localStorage.removeItem(${JSON.stringify(NEW_KEY)});
        localStorage.setItem(${JSON.stringify(OLD_KEY)}, JSON.stringify({
          baseHsv: { h: 210, s: 0.8, v: 0.6 },
          favorites: ['#AABBCC', '#DDEEFF'],
@@ -155,8 +161,10 @@ async function run() {
     `favourites migrated + lowercased — got ${JSON.stringify(mig.favs)}`
   );
   check(mig.previewSize === 'large', `prefs migrated — got ${JSON.stringify(mig.previewSize)}`);
+  /* Lower-cased, like `store-test` asserts: the store normalises every colour it
+   * writes into `history`, so an uppercase expectation can never be met. */
   check(
-    JSON.stringify(mig.history) === JSON.stringify([SAFFRON]) && mig.historyIndex === 0,
+    JSON.stringify(mig.history) === JSON.stringify([SAFFRON.toLowerCase()]) && mig.historyIndex === 0,
     `history restarts on saffron — got ${JSON.stringify(mig.history)} @ ${mig.historyIndex}`
   );
   check(mig.newKey, 'migrated state written under the new key');

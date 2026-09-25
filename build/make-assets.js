@@ -6,8 +6,6 @@
  *   node build/make-assets.js
  *
  * Produces:
- *   src/assets/icon.png          - application icon
- *   src/assets/icon@2x.png       - hi-dpi variant
  *   src/assets/sample-photo.png  - default picture for the PhotoSchemer panel
  *
  * A minimal PNG encoder (zlib is part of Node) keeps this dependency-free.
@@ -153,101 +151,15 @@ class Canvas {
 }
 
 /* ------------------------------------------------------------------ *
- *  Application icon — faceted colour disc
+ *  Application icon — hand-drawn, not generated
+ *
+ *  `src/assets/icon.png` (256) and `icon@2x.png` (512) are committed art, the
+ *  same as `media/*.png`. This script used to draw a procedural colour disc
+ *  into those exact paths, so `npm run assets` quietly replaced the shipped
+ *  saffron-flower icon with a superseded design — and the generated file was
+ *  byte-identical on every run, which made it look like nothing had changed.
+ *  The generator is gone; git history has it.
  * ------------------------------------------------------------------ */
-
-function hsv(h, s, v) {
-  const c = v * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = v - c;
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  if (h < 60) [r, g, b] = [c, x, 0];
-  else if (h < 120) [r, g, b] = [x, c, 0];
-  else if (h < 180) [r, g, b] = [0, c, x];
-  else if (h < 240) [r, g, b] = [0, x, c];
-  else if (h < 300) [r, g, b] = [x, 0, c];
-  else [r, g, b] = [c, 0, x];
-  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
-}
-
-function drawIcon(size) {
-  const c = new Canvas(size, size);
-  const cx = size / 2;
-  const cy = size / 2;
-  const R = size * 0.46;
-  const SEG = 12;
-  const SS = 3; // supersampling
-
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      let ar = 0;
-      let ag = 0;
-      let ab = 0;
-      let aa = 0;
-
-      for (let sy = 0; sy < SS; sy++) {
-        for (let sx = 0; sx < SS; sx++) {
-          const px = x + (sx + 0.5) / SS;
-          const py = y + (sy + 0.5) / SS;
-          const dx = px - cx;
-          const dy = py - cy;
-          const d = Math.sqrt(dx * dx + dy * dy);
-
-          // soft drop shadow
-          if (d > R && d < R + size * 0.035) {
-            const a = (1 - (d - R) / (size * 0.035)) * 0.16;
-            ar += 40 * a;
-            ag += 40 * a;
-            ab += 50 * a;
-            aa += a;
-            continue;
-          }
-          if (d > R) continue;
-
-          let ang = (Math.atan2(dy, dx) * 180) / Math.PI;
-          if (ang < 0) ang += 360;
-
-          const seg = Math.floor((ang / 360) * SEG) % SEG;
-          const hue = (seg / SEG) * 360 + 8;
-
-          // petal cut-outs give the classic segmented look
-          const petal = Math.abs(((ang / 360) * SEG) % 1 - 0.5) * 2;
-          const inner = R * (0.30 + petal * 0.30);
-
-          let col;
-          if (d < inner) {
-            // white-ish core with a hint of the segment hue
-            const t = Math.max(0, (d / Math.max(inner, 1)) * 0.9);
-            const core = hsv(hue, 0.06 + t * 0.16, 1 - t * 0.06);
-            col = core;
-          } else {
-            const t = Math.min(1, (d - inner) / Math.max(R - inner, 1));
-            col = hsv(hue, 0.62 + t * 0.38, 1 - t * 0.16);
-          }
-
-          const edge = Math.min(1, (R - d) / 1.2);
-          ar += col[0] * edge;
-          ag += col[1] * edge;
-          ab += col[2] * edge;
-          aa += edge;
-        }
-      }
-
-      const n = SS * SS;
-      if (aa > 0) {
-        const i = c.idx(x, y);
-        c.data[i] = Math.min(255, Math.round(ar / aa));
-        c.data[i + 1] = Math.min(255, Math.round(ag / aa));
-        c.data[i + 2] = Math.min(255, Math.round(ab / aa));
-        c.data[i + 3] = Math.min(255, Math.round((aa / n) * 255));
-      }
-    }
-  }
-
-  return c;
-}
 
 /* ------------------------------------------------------------------ *
  *  Sample photo — a small illustrated landscape
@@ -369,17 +281,12 @@ function main() {
   const outDir = path.join(__dirname, '..', 'src', 'assets');
   fs.mkdirSync(outDir, { recursive: true });
 
-  const icon = drawIcon(256);
-  fs.writeFileSync(path.join(outDir, 'icon.png'), encodePng(icon.w, icon.h, icon.data));
-
-  const icon2x = drawIcon(512);
-  fs.writeFileSync(path.join(outDir, 'icon@2x.png'), encodePng(icon2x.w, icon2x.h, icon2x.data));
-
   const photo = drawSample(900, 600);
   fs.writeFileSync(path.join(outDir, 'sample-photo.png'), encodePng(photo.w, photo.h, photo.data));
 
   console.log('assets written to', outDir);
-  console.log('  icon.png, icon@2x.png, sample-photo.png');
+  console.log('  sample-photo.png');
+  console.log('  icon.png / icon@2x.png are hand-drawn — see the note above');
 }
 
 main();

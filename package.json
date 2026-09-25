@@ -6,6 +6,7 @@
   "main": "main.js",
   "author": "Abbas (abas619)",
   "license": "MIT",
+  "homepage": "https://github.com/abas619/zaferon-schemer",
   "private": true,
   "scripts": {
     "start": "electron .",
@@ -28,12 +29,16 @@
     "donate-check": "node build/donate-check.js",
     "update-check": "node build/update-check.js",
     "update-shots": "electron build/update-shots.js",
-    "dist": "electron-builder --win --publish never",
-    "dist:publish": "electron-builder --win --publish always"
+    "dist": "electron-builder --publish never",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:linux": "electron-builder --linux --publish never",
+    "dist:mac": "electron-builder --mac --publish never",
+    "dist:publish": "electron-builder --publish always"
   },
   "build": {
     "appId": "com.zaferon.schemer",
     "productName": "Zaferon Schemer",
+    "copyright": "Copyright © 2026 Abbas (abas619)",
     "directories": {
       "output": "dist"
     },
@@ -46,14 +51,48 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
       "icon": "src/assets/icon.png"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "rpm", "arch": ["x64"] }
+      ],
+      "icon": "src/assets/icon@2x.png",
+      "category": "Graphics",
+      "synopsis": "Desktop colour studio: harmonies, mixer, eyedropper",
+      "maintainer": "Abbas <abas619@users.noreply.github.com>",
+      "desktop": {
+        "Name": "Zaferon Schemer",
+        "Comment": "Desktop colour studio",
+        "Keywords": "color;colour;palette;scheme;eyedropper;design;"
+      }
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "src/assets/icon@2x.png",
+      "category": "public.app-category.design",
+      "identity": null,
+      "gatekeeperAssess": false,
+      "hardenedRuntime": false
     },
     "publish": {
       "provider": "github",

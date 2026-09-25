@@ -198,6 +198,15 @@
           );
           return;
         }
+        /* A portable exe has nothing to update in place, and `Install & Restart`
+         * on one would run a real installer and quietly create an installed copy
+         * the user never asked for. Say what it is instead of offering a lie. */
+        if (s.portable) {
+          openDialog(
+            'This is the portable build — a single exe with no installed copy to replace, so it cannot update itself. Download the newer version from the project page and run that instead.'
+          );
+          return;
+        }
         openDialog('Checking for updates…');
         if (s.state && s.state.type && s.state.type !== 'idle') apply(s.state);
         u.check().catch(() => dialogLine('The app could not reach its update service.'));

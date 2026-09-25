@@ -36,15 +36,20 @@ const check = (ok, msg) => {
   console.log(`${ok ? 'ok  ' : 'FAIL'}  ${msg}`);
 };
 
+/* The three build identities the update UI has to distinguish: from source,
+ * installed, and installed-but-portable. Flipping this is the only way to visit
+ * them, since `app.isPackaged` and `PORTABLE_EXECUTABLE_DIR` are fixed here. */
+let identity = { packaged: false, portable: false };
+
 ipcMain.handle('app:info', () => ({ name: app.getName(), version: app.getVersion() }));
 ipcMain.handle('shell:openExternal', async () => true);
 ipcMain.handle('picker:start', async () => null);
 ipcMain.handle('clipboard:writeText', () => true);
 ipcMain.handle('clipboard:readText', () => '');
-ipcMain.handle('update:check', async () => ({ packaged: false }));
-ipcMain.handle('update:download', async () => ({ packaged: false }));
-ipcMain.handle('update:install', async () => ({ packaged: false }));
-ipcMain.handle('update:status', () => ({ packaged: false, state: { type: 'idle' } }));
+ipcMain.handle('update:check', async () => ({ packaged: identity.packaged }));
+ipcMain.handle('update:download', async () => ({ packaged: identity.packaged }));
+ipcMain.handle('update:install', async () => ({ packaged: identity.packaged }));
+ipcMain.handle('update:status', () => ({ packaged: identity.packaged, portable: identity.portable, state: { type: 'idle' } }));
 
 /* Geometry of the banner relative to the strips it must sit between.
  * Wrapped in JSON.stringify and — note for anyone copying this file — the IIFE
@@ -172,29 +177,55 @@ async function run(win) {
   await win.webContents.executeJavaScript(`CS.Theme.set('light')`, true);
   await sleep(200);
 
-  /* ---------- the dialog answers, in a dev build ---------- */
-  await win.webContents.executeJavaScript(
-    `CS.Update.hideBanner(); CS.Update.check({ projectUrl: 'https://github.com/abas619/zaferon-schemer' })`,
-    true
-  );
-  await sleep(400);
-  const dlg = await win.webContents.executeJavaScript(
-    `(function () {
-       const box = document.querySelector('.modal');
-       if (!box) return { missing: true };
-       return {
-         title: box.querySelector('.modal-title span').textContent,
-         line: box.querySelector('.update-dialog-line').textContent,
-         buttons: Array.prototype.slice.call(box.querySelectorAll('.modal-actions button'))
-           .map(function (b) { return b.textContent; }).join(', ')
-       };
-     })()`,
-    true
-  );
-  check(!dlg.missing, 'dialog: Check for Updates opened a dialog');
-  check(/running from source/.test(dlg.line || ''), `dialog: says so honestly — "${dlg.line}"`);
-  check(/Open Project Page/.test(dlg.buttons || ''), `dialog: offers the page (${dlg.buttons})`);
+  /* ---------- the dialog's three answers, one per build identity ---------- */
+  /* `openDialog()` is deliberately single-instance, so each case has to close
+   * the previous dialog before it can observe the next one. */
+  async function ask(who) {
+    await win.webContents.executeJavaScript(
+      `(function(){const x=document.querySelector('.modal-close');if(x)x.click();return 1})()`,
+      true
+    );
+    await sleep(120);
+    identity = who;
+    stage = 'dialog ' + JSON.stringify(who);
+    await win.webContents.executeJavaScript(
+      `CS.Update.hideBanner(); CS.Update.check({ projectUrl: 'https://github.com/abas619/zaferon-schemer' })`,
+      true
+    );
+    await sleep(400);
+    return win.webContents.executeJavaScript(
+      `(function () {
+         const box = document.querySelector('.modal');
+         if (!box) return { missing: true };
+         return {
+           title: box.querySelector('.modal-title span').textContent,
+           line: box.querySelector('.update-dialog-line').textContent,
+           buttons: Array.prototype.slice.call(box.querySelectorAll('.modal-actions button'))
+             .map(function (b) { return b.textContent; }).join(', ')
+         };
+       })()`
+    );
+  }
+
+  const src = await ask({ packaged: false, portable: false });
+  check(!src.missing, 'dialog: Check for Updates opened a dialog');
+  check(src.title === 'Check for Updates', `dialog: titled "${src.title}"`);
+  check(/running from source/.test(src.line || ''), `dialog (source): says so honestly — "${src.line}"`);
+  check(/Open Project Page/.test(src.buttons || ''), `dialog: offers the page (${src.buttons})`);
   await shot(win, 'update-dialog.png');
+
+  const portable = await ask({ packaged: true, portable: true });
+  check(/portable/.test(portable.line || ''), `dialog (portable): names the build — "${portable.line}"`);
+  check(/cannot update itself/.test(portable.line || ''), 'dialog (portable): admits it cannot self-update');
+  check(!/Download it now/.test(portable.line || ''), 'dialog (portable): never offers the installer path');
+
+  const installed = await ask({ packaged: true, portable: false });
+  check(/Checking for updates/.test(installed.line || ''), `dialog (installed): actually checks — "${installed.line}"`);
+  check(!/portable|running from source/.test(installed.line || ''), 'dialog (installed): no dev caveat in the way');
+  await win.webContents.executeJavaScript(
+    `(function(){const x=document.querySelector('.modal-close');if(x)x.click();return 1})()`,
+    true
+  );
 }
 
 app.whenReady().then(async () => {

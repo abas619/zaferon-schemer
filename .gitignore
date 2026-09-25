@@ -17,6 +17,7 @@ shots/
 
 # Generated harness reports (re-created by every run)
 build/menu-audit.json
+build/firstrun-report.txt
 build/*.out.txt
 
 # Logs
